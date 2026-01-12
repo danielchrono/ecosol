@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { updateServiceAction } from "@/app/admin/services/actions";
+import { updateServiceAction } from "@/app/provider/actions";
 
 export default function EditServiceForm({ service }: { service: any }) {
   const router = useRouter();

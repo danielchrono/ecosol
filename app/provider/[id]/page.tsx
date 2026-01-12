@@ -37,7 +37,7 @@ export default async function ProviderPage({
 
           {/* 2. Botão que só aparece para você */}
           {isAdmin && (
-            <Link href={`/admin/services/${id}/edit`}>
+            <Link href={`/admin/provider/${id}/edit`}>
               <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
                 ⚙️ Editar como Admin
               </Button>

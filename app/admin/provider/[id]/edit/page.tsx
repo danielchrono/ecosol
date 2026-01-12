@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Header from "@/components/header";
-import EditServiceForm from "./edit-form";
+import EditServiceForm from "@/app/provider/edit/edit-form";
 
 export default async function EditServicePage({
   params,

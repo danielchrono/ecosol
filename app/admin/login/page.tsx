@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
-import Header from "../../../components/header";
-import { Input } from "../../../components/ui/input";
-import { Button } from "../../../components/ui/button";
+import Header from "@/components/header";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { loginAction } from "./actions"; // Importe a action
 

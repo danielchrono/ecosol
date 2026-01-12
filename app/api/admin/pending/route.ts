@@ -1,5 +1,5 @@
-import prisma from "../../../../lib/prisma";
-import { checkAdminAuth } from "../../../../lib/auth-check";
+import prisma from "@/lib/prisma";
+import { checkAdminAuth } from "@/lib/auth-check";
 
 export async function GET() {
   const isAuthorized = await checkAdminAuth();

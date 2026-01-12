@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
-import Header from "../../../components/header";
-import { Button } from "../../../components/ui/button";
-import ServiceCard from "../../../components/service-card";
+import Header from "@/components/header";
+import { Button } from "@/components/ui/button";
+import ServiceCard from "@/components/service-card";
 
 export default function AdminDashboard() {
   const [pending, setPending] = React.useState<any[]>([]);
