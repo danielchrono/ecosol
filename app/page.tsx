@@ -14,31 +14,45 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const { q, category, page } = await searchParams;
 
-  // 1. BUSCA OTIMIZADA (Engenharia de Performance: Buscas paralelas)
-  const [categoryCounts, totalServicesCount] = await Promise.all([
-    prisma.service.groupBy({
-      by: ['category'],
-      where: { approved: true, suspended: false },
-      _count: { category: true },
-      orderBy: { category: 'asc' }
-    }),
-    prisma.service.count({
-      where: { approved: true, suspended: false }
-    })
-  ]).catch(() => [[], 0]); // Blindagem: se a conexão falhar, retorna dados vazios em vez de travar
-
-  // 2. CONSTRÓI O OBJETO COM FALLBACKS (Garante exibição mesmo sem cadastros)
-  const categoriesWithCounts = [
-    { name: "Todas", count: totalServicesCount || 0 },
-    ...(categoryCounts?.map(c => ({
-      name: c.category,
-      count: c._count.category
-    })) || [])
-  ];
+  // Inicialização de variáveis com tipos explícitos (Visão de Engenharia)
+  let categoryCounts: any[] = [];
+  let totalServicesCount = 0;
+  let services: any[] = [];
+  let totalFilteredCount = 0;
 
   const ITEMS_PER_PAGE = 6;
   const currentPage = Number(page) || 1;
 
+  // 1. Bloco de Busca com Tratamento de Erro Explícito
+  try {
+    // Buscas em paralelo para otimização de performance
+    const [counts, total] = await Promise.all([
+      prisma.service.groupBy({
+        by: ['category'],
+        where: { approved: true, suspended: false },
+        _count: { category: true },
+        orderBy: { category: 'asc' }
+      }),
+      prisma.service.count({
+        where: { approved: true, suspended: false }
+      })
+    ]);
+    categoryCounts = counts;
+    totalServicesCount = total;
+  } catch (err) {
+    console.error("Erro na busca de categorias:", err);
+  }
+
+  // 2. Construção segura da lista de categorias
+  const categoriesWithCounts = [
+    { name: "Todas", count: totalServicesCount },
+    ...(categoryCounts.map(c => ({
+      name: c.category,
+      count: c._count.category
+    })))
+  ];
+
+  // Configuração do filtro 'where'
   const where = {
     approved: true,
     suspended: false,
@@ -52,14 +66,20 @@ export default async function Home({ searchParams }: HomeProps) {
     } : {}),
   };
 
-  const [services, totalFilteredCount] = await Promise.all([
-    prisma.service.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: ITEMS_PER_PAGE * currentPage,
-    }),
-    prisma.service.count({ where }),
-  ]).catch(() => [[], 0]);
+  try {
+    const [foundServices, filteredTotal] = await Promise.all([
+      prisma.service.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: ITEMS_PER_PAGE * currentPage,
+      }),
+      prisma.service.count({ where }),
+    ]);
+    services = foundServices;
+    totalFilteredCount = filteredTotal;
+  } catch (err) {
+    console.error("Erro na busca de serviços:", err);
+  }
 
   const hasMore = services.length < totalFilteredCount;
 
@@ -76,14 +96,15 @@ export default async function Home({ searchParams }: HomeProps) {
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-800">Categorias</h2>
-          {/* Componente agora recebe dados mesmo que vazios */}
           <CategoryFilter categories={categoriesWithCounts} />
         </div>
 
         {services.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 mt-8">
             <span className="text-4xl block mb-2">🔍</span>
-            <p className="text-slate-500 font-medium italic">Nenhum serviço disponível no momento.</p>
+            <p className="text-slate-500 font-medium italic">
+              Nenhum serviço disponível no momento.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8 animate-in fade-in duration-500">
