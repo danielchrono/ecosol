@@ -74,7 +74,7 @@ Configurações necessárias no painel do Supabase para o funcionamento correto 
 
     Rota de Consentimento: Implementada em app/oauth/consent/page.tsx para gerenciar autorizações de login.
 
-    Storage: Criar bucket público chamado fotos-produtos.
+    Storage: Criar bucket público chamado logos.
 
 Learn More
 
