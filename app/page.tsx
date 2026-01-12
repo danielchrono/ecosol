@@ -68,7 +68,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <main className="mx-auto max-w-6xl p-6">
         <section className="flex flex-col items-center text-center py-10 gap-4">
           <h1 className="text-4xl font-extrabold text-slate-900">
-            Ecosol <span className="text-blue-600">Autista</span>
+            Economia Solidária <span className="text-blue-600">Entre Autistas</span>
           </h1>
           <SearchBar />
         </section>

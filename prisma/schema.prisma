@@ -1,18 +1,17 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model Service {
   id          Int      @id @default(autoincrement())
   name        String
   category    String
-  description String?  @db.Text
-  image       String?  // Armazenará o Base64 ou URL
+  image       String?
   whatsapp    String?
   instagram   String?
   tiktok      String?
@@ -21,15 +20,29 @@ model Service {
   approved    Boolean  @default(false)
   suspended   Boolean  @default(false)
   createdAt   DateTime @default(now())
+  description String?
+  views       Int      @default(0)
 }
 
-// Tabelas para Suporte ao NextAuth (Login Seguro e Google)
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?        @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // Para login local
-  role          String    @default("USER")
+  password      String?
+  role          String         @default("USER")
+  bio           String?
+  createdAt     DateTime       @default(now())
+  phone         String?
+  notifications Notification[]
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
