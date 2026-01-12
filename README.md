@@ -1,92 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 Ecosol - Plataforma de Economia Solidária
 
-## 🌿 Ecosol - Plataforma de Economia Solidária
+Plataforma voltada para a gestão e fomento da economia solidária entre autistas, desenvolvida com foco em alta performance, segurança de dados e escalabilidade. Este projeto integra o portfólio de um estudante de engenharia de computação no primeiro período do curso, com foco no aprimoramento da qualidade do código e otimização de sistemas.
 
-Plataforma voltada para a gestão e fomento da economia solidária, desenvolvida com **Next.js 15**, **Prisma 7.2** e **Supabase**.
+Este é um projeto [Next.js](https://nextjs.org) iniciado com `create-next-app`.
 
-## Getting Started
+## 🚀 Tecnologias e Ferramentas
+* **Framework**: [Next.js 15 (App Router)](https://nextjs.org)
+* **Linguagens**: TypeScript e JavaScript
+* **ORM**: [Prisma 7.2](https://www.prisma.io)
+* **Banco de Dados**: [Supabase (PostgreSQL)](https://supabase.com)
+* **Estilização**: Tailwind CSS & Shadcn/UI
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🛠️ Configuração do Backend (Prisma 7 + Supabase)
 
-Open http://localhost:3000 with your browser to see the result.
+### 1. Variáveis de Ambiente (.env.local)
+O uso do arquivo `.env.local` é essencial para evitar o vazamento de credenciais em repositórios públicos e gerenciar integrações de API de forma segura. Certifique-se de que sua senha do banco de dados tenha caracteres especiais codificados (Ex: `*` vira `%2A`, `@` vira `%40`).
 
-You can start editing the page by modifying app/page.tsx. The page auto-updates as you edit the file.
-
-This project uses next/font to automatically optimize and load Geist, a new font family for Vercel.
-🛠 Configuração do Backend (Prisma 7 + Supabase)
-
-No Prisma 7.2, as URLs de conexão não são mais suportadas no arquivo schema.prisma. Elas devem ser gerenciadas exclusivamente pelo arquivo prisma.config.ts.
-1. Variáveis de Ambiente (.env)
-
-Certifique-se de que sua senha do banco de dados tenha caracteres especiais codificados. Importante: O asterisco * deve ser escrito como %2A. Recomenda-se o uso do host IPv4 do Supabase para evitar travamentos de conexão no Linux.
-Snippet de código
-
+```env
 # URL para a aplicação (Porta 6543 - Transaction Mode com PgBouncer)
-DATABASE_URL="postgresql://postgres.[ID]:[SENHA]@[HOST]:6543/postgres?pgbouncer=true"
+DATABASE_URL="postgresql://postgres.[ID]:[SENHA_CODIFICADA]@[aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true](https://aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true)"
 
 # URL para Migrações e CLI (Porta 5432 - Session Mode Direto)
-DIRECT_URL="postgresql://postgres.[ID]:[SENHA]@[HOST]:5432/postgres"
+DIRECT_URL="postgresql://postgres:[SENHA_CODIFICADA]@db.[ID].supabase.co:5432/postgres"
 
 # Supabase Keys
 NEXT_PUBLIC_SUPABASE_URL="https://[ID].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="sua_chave_anon_aqui"
 
-2. Configuração do Prisma CLI (prisma.config.ts)
+2. Sincronização de Banco de Dados
 
-Para que as migrações funcionem via terminal, o arquivo de configuração deve apontar para a DIRECT_URL. O Prisma 7 utiliza este arquivo para estabelecer a conexão durante o comando migrate.
-TypeScript
-
-import { defineConfig } from '@prisma/config';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
-
-export default defineConfig({
-  datasource: {
-    // O CLI utiliza esta URL para migrações (deve ser a DIRECT_URL porta 5432)
-    url: process.env.DIRECT_URL as string,
-  },
-});
-
-3. Sincronização de Banco de Dados
+Para refletir as alterações do schema no seu banco de dados Supabase e otimizar a performance, utilize os comandos abaixo:
 Bash
 
 # Gerar o Prisma Client
 npx prisma generate
 
-# Executar migrações iniciais (utiliza a url definida no config)
-npx prisma migrate dev --name init
+# Sincronizar esquema com o banco (utiliza a DIRECT_URL definida no ambiente)
+npx prisma db push
 
-🔐 Autenticação e Storage (Supabase Dashboard)
+🔐 Segurança e Infraestrutura (Database Patches)
 
-Configurações necessárias no painel do Supabase para o funcionamento correto da plataforma:
+Implementamos correções críticas para evitar a exposição de dados sensíveis e garantir a integridade da plataforma. Aplique os comandos abaixo no SQL Editor do Supabase:
+1. Patch de Segurança: Blindagem de Dados (RLS)
+SQL
 
-    Redirect URLs: Adicione http://localhost:3000/** em Authentication > URL Configuration.
+-- 1. Ativação de Segurança de Nível de Linha (RLS)
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Service" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Notification" ENABLE ROW LEVEL SECURITY;
 
-    Rota de Consentimento: Implementada em app/oauth/consent/page.tsx para gerenciar autorizações de login.
+-- 2. Políticas de Acesso (Engenharia de Segurança)
+CREATE POLICY "Serviços visíveis para todos" ON "Service" FOR SELECT USING (true);
+CREATE POLICY "Usuários gerenciam seu próprio perfil" ON "User" USING (auth.uid()::text = id::text);
+CREATE POLICY "Notificações privadas" ON "Notification" FOR SELECT USING (auth.uid()::text = "userId"::text);
 
-    Storage: Criar bucket público chamado logos.
+-- 3. Otimização de Performance (Indexação)
+-- Resolve o alerta "Unindexed foreign keys" e acelera buscas
+CREATE INDEX IF NOT EXISTS "idx_notification_user_id" ON "Notification" ("userId");
+CREATE INDEX IF NOT EXISTS "idx_service_category" ON "Service" ("category");
 
-Learn More
+2. Configuração do Storage (Bucket logos)
 
-To learn more about Next.js, take a look at the following resources:
+Gerenciamento escalável de mídias para os serviços cadastrados:
+SQL
 
-    Next.js Documentation - learn about Next.js features and API.
+-- 1. Criação do Bucket 'logos'
+INSERT INTO storage.buckets (id, name, public) VALUES ('logos', 'logos', true);
 
-    Learn Next.js - an interactive Next.js tutorial.
+-- 2. Políticas de Storage
+CREATE POLICY "Logos públicas" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
+CREATE POLICY "Upload por usuários autenticados" ON storage.objects 
+FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.role() = 'authenticated');
 
-You can check out the Next.js GitHub repository - your feedback and contributions are welcome!
-Deploy on Vercel
+⚙️ Getting Started (Desenvolvimento)
 
-The easiest way to deploy your Next.js app is to use the Vercel Platform from the creators of Next.js.
+Instale as dependências e inicie o servidor local:
+Bash
 
-Check out our Next.js deployment documentation for more details.
+npm install
+npm run dev
+
+Abra http://localhost:3000 no seu navegador.
+📈 Roadmap
+
+    [x] RBAC (Role Based Access Control) para Admins e Usuários.
+
+    [x] Sistema de notificações profissional com seleção múltipla.
+
+    [x] Máscara dinâmica para campos de WhatsApp (RegEx).
+
+    [x] Implementação de upload de imagens para o Bucket logos.
+
+    [ ] Implementação de autenticação via Google.
+
+Desenvolvido com foco em engenharia, performance e impacto social.

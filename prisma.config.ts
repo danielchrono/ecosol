@@ -1,11 +1,12 @@
 import { defineConfig } from '@prisma/config';
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+// Engenharia de Robustez: Tenta ler o .env.local primeiro, depois o .env
+dotenv.config({ path: '.env.local' }); 
+dotenv.config(); 
 
 export default defineConfig({
   datasource: {
-    // Para o CLI (migrações), usamos a DIRECT_URL
     url: process.env.DIRECT_URL as string,
   },
-}); 
+});
