@@ -4,6 +4,8 @@ import Header from "@/components/header";
 import EditServiceForm from "../edit-form";
 import { cookies } from "next/headers";
 import { createServerClient } from '@supabase/ssr';
+import { Settings2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default async function EditServicePage({
   params,
@@ -34,25 +36,44 @@ export default async function EditServicePage({
   const isAdmin = dbUser?.role === "ADMIN";
   const isOwner = user?.email === service.email;
 
-  // Segurança: Só entra quem for admin ou dono
+  // Segurança de Acesso: Bloqueio de carga não autorizada
   if (!isAdmin && !isOwner) {
     redirect("/");
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 pb-20">
       <Header />
+      
       <main className="mx-auto max-w-2xl p-6 py-12">
-        <div className="mb-6">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-            Editar Prestador
-          </h2>
-          <p className="text-slate-500 text-sm">
-            {isAdmin ? "Modo Administrador" : "Alterando seus dados de negócio"}
-          </p>
+        {/* Navegação de Retorno */}
+        <div className="mb-8">
+          <Link 
+            href={isAdmin ? "/admin/dashboard" : `/provider/${id}`}
+            className="group inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-1" />
+            {isAdmin ? "Voltar ao Painel" : "Ver meu perfil"}
+          </Link>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+        {/* Cabeçalho de Engenharia */}
+        <div className="mb-8 flex items-center gap-4">
+          <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+            <Settings2 size={24} />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase leading-none">
+              Editar Cadastro
+            </h2>
+            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mt-2">
+              {isAdmin ? "🔧 Modo Administrador / Auditoria" : "👤 Atualizando Dados do Empreendedor"}
+            </p>
+          </div>
+        </div>
+
+        {/* Card do Formulário: bg-white -> bg-card | border-slate-200 -> border-border */}
+        <div className="bg-card p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-border animate-in fade-in slide-in-from-bottom-4 duration-500">
           <EditServiceForm service={service} />
         </div>
       </main>

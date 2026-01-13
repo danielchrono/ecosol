@@ -8,9 +8,11 @@ import { ArrowUpRight } from "lucide-react";
 
 export default function ServiceCard({ service }: { service: Service }) {
   return (
-    <Card className="flex flex-col h-full border-slate-100 hover:border-blue-200 transition-all duration-300 p-3.5 shadow-sm group">
-      {/* Imagem compacta */}
-      <div className="relative aspect-video rounded-[1.6rem] bg-slate-50 overflow-hidden border border-slate-50 mb-2.5">
+    /* O Card já foi atualizado por nós para usar bg-card e border-border */
+    <Card className="flex flex-col h-full border-border hover:border-primary/40 transition-all duration-300 p-3.5 shadow-sm group">
+      
+      {/* Imagem compacta: bg-slate-50 -> bg-muted */}
+      <div className="relative aspect-video rounded-[1.6rem] bg-muted overflow-hidden border border-border mb-2.5">
         <img
           src={service.image || "/placeholder.png"}
           alt={service.name}
@@ -18,22 +20,23 @@ export default function ServiceCard({ service }: { service: Service }) {
         />
       </div>
 
-      {/* Título e descrição colados */}
+      {/* Título e descrição: text-slate-900 -> text-foreground */}
       <div className="flex-1 px-0.5">
-        <h3 className="text-base font-black text-slate-900 leading-tight uppercase tracking-tight">
+        <h3 className="text-base font-black text-foreground leading-tight uppercase tracking-tight">
           {service.name}
         </h3>
         {service.description && (
-          <p className="text-slate-500 text-[10px] line-clamp-2 leading-tight font-medium mt-0.5 opacity-90">
+          <p className="text-muted-foreground text-[10px] line-clamp-2 leading-tight font-medium mt-0.5 opacity-90">
             {service.description}
           </p>
         )}
       </div>
 
-      {/* Rodapé: mt-2 e gap-2 para eliminar espaços vazios */}
-      <div className="mt-2 pt-2 border-t border-slate-50 space-y-2">
+      {/* Rodapé: border-slate-50 -> border-border */}
+      <div className="mt-2 pt-2 border-t border-border space-y-2">
         <div className="flex">
-          <span className="text-[7px] font-black text-blue-500 uppercase tracking-[0.2em] px-2 py-0.5 bg-blue-50/50 rounded-md">
+          {/* Badge de categoria: bg-blue-50 -> bg-primary/10 */}
+          <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em] px-2 py-0.5 bg-primary/10 rounded-md">
             {service.category}
           </span>
         </div>
@@ -49,7 +52,8 @@ export default function ServiceCard({ service }: { service: Service }) {
             }}
           />
           <Link href={`/provider/${service.id}`}>
-            <Button variant="ghost" className="h-7 px-3 rounded-lg text-blue-600 font-black text-[9px] uppercase tracking-widest">
+            {/* O Button "ghost" já herdará as cores do nosso componente Button atualizado */}
+            <Button variant="ghost" className="h-7 px-3 rounded-lg text-primary font-black text-[9px] uppercase tracking-widest hover:bg-primary/10">
               Perfil <ArrowUpRight className="ml-1 h-3 w-3" />
             </Button>
           </Link>

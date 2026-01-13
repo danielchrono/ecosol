@@ -15,27 +15,27 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
 
   return (
     /**
-     * CONTÊINER PAI (A Única Borda)
-     * - Ocupa a função visual completa.
-     * - focus-within: Ativa o estilo quando o input interno é clicado.
+     * CONTÊINER PAI (Logística de Cores Adaptativas)
+     * - bg-white -> bg-background
+     * - border-slate-200 -> border-input
+     * - focus-within:ring-blue-50/50 -> focus-within:ring-primary/20
      */
-    <div className="flex w-full max-w-2xl items-center bg-white h-11 px-4 
-                    rounded-full border border-slate-200 transition-all duration-200
-                    focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-50/50 
+    <div className="flex w-full max-w-2xl items-center bg-background h-11 px-4 
+                    rounded-full border border-input transition-all duration-300
+                    focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 
                     shadow-sm group">
       
-      {/* Lupa integrada: Sem div de separação para evitar "estranheza" visual */}
-      <Search className="h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors stroke-[2.5px] shrink-0" />
+      {/* Lupa integrada: text-slate-400 -> text-muted-foreground */}
+      <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors stroke-[2.5px] shrink-0" />
 
       {/* INPUT NATIVO:
-          - Usamos a tag nativa <input /> para evitar estilos ocultos do Shadcn.
-          - outline-none e border-none: Garantem que NENHUMA borda interna apareça.
-          - ring-0: Remove qualquer sombra de foco automática.
+          - text-slate-700 -> text-foreground
+          - placeholder:text-slate-300 -> placeholder:text-muted-foreground
       */}
       <input
         type="text"
-        className="flex-1 bg-transparent h-full ml-3 text-sm font-bold text-slate-700 
-                   placeholder:text-slate-300 placeholder:font-medium
+        className="flex-1 bg-transparent h-full ml-3 text-sm font-bold text-foreground 
+                   placeholder:text-muted-foreground/60 placeholder:font-medium
                    outline-none border-none ring-0 focus:ring-0 focus:outline-none"
         placeholder="O que você precisa hoje?"
         value={q}

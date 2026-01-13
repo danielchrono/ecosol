@@ -4,6 +4,7 @@ import Link from "next/link";
 import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
 import DashboardList from "./dashboard-list";
+import { Loader2, Trash2, LayoutDashboard } from "lucide-react";
 
 export default function AdminDashboard() {
   const [pending, setPending] = React.useState<any[]>([]);
@@ -11,7 +12,11 @@ export default function AdminDashboard() {
 
   async function load() {
     try {
-      const res = await fetch("/api/admin/pending", { cache: 'no-store' });
+      // Logística Anti-Cache para dados sempre frescos
+      const res = await fetch("/api/admin/pending", { 
+        cache: 'no-store',
+        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+      });
       if (!res.ok) throw new Error("Erro ao carregar");
       const data = await res.json();
       setPending(data);
@@ -25,36 +30,45 @@ export default function AdminDashboard() {
   React.useEffect(() => { load(); }, []);
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <div className="flex-1 flex items-center justify-center">
-        <div className="p-10 text-center font-bold text-slate-400 animate-pulse uppercase tracking-[0.3em] text-xs">Carregando painel...</div>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="font-black text-muted-foreground animate-pulse uppercase tracking-[0.3em] text-[10px]">
+          Sincronizando Base...
+        </p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-32">
+    <div className="min-h-screen bg-background text-foreground pb-32 transition-colors duration-300">
       <Header />
       <main className="mx-auto max-w-6xl p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
-          <div>
-            <h2 className="text-4xl font-black tracking-tighter text-slate-900">Painel de Controle</h2>
-            <p className="text-slate-500 font-medium">Aprovação de serviços na rede Ecosol.</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+              <LayoutDashboard size={32} />
+            </div>
+            <div>
+              <h2 className="text-4xl font-black tracking-tighter text-foreground uppercase">Painel Admin</h2>
+              <p className="text-muted-foreground font-medium">Controle de qualidade e curadoria Ecosol.</p>
+            </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Link href="/admin/trash">
-              <Button variant="outline" className="rounded-2xl border-slate-200 bg-white font-bold h-12 px-6 shadow-sm hover:bg-slate-50">
-                🗑️ Ver Lixeira
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Link href="/admin/trash" className="flex-1 sm:flex-none">
+              <Button variant="outline" className="w-full rounded-2xl border-border bg-card font-bold h-12 px-6 shadow-sm hover:bg-muted gap-2">
+                <Trash2 size={18} /> Lixeira
               </Button>
             </Link>
-            <div className="bg-blue-600 text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-lg shadow-blue-100">
+            <div className="bg-primary text-primary-foreground px-6 py-2.5 rounded-2xl text-sm font-black shadow-lg shadow-primary/20">
               {pending.length} Pendentes
             </div>
           </div>
         </div>
 
+        {/* Lista que agora entende o Dark Mode */}
         <DashboardList initialItems={pending} onRefresh={load} />
       </main>
     </div>

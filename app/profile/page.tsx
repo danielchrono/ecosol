@@ -42,82 +42,89 @@ export default async function ProfilePage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 pb-20">
       <Header />
       <main className="mx-auto max-w-5xl p-6 py-12">
         
-        {/* HEADER DO PERFIL */}
+        {/* HEADER DO PERFIL: bg-blue-600 -> bg-primary */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-xl shadow-blue-200">
+            <div className="w-20 h-20 bg-primary rounded-[2rem] flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20">
               <UserCircle className="w-12 h-12" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Meu Perfil</h1>
-              <p className="text-slate-500 font-medium italic">{user.email}</p>
+              <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase leading-none">Meu Perfil</h1>
+              <p className="text-muted-foreground font-medium italic text-sm">{user.email}</p>
             </div>
           </div>
           <Link href="/profile/edit">
-            <Button className="bg-white hover:bg-slate-50 text-slate-900 border-none shadow-lg rounded-2xl px-6 h-12 font-black text-xs uppercase tracking-widest gap-2">
+            <Button variant="outline" className="rounded-2xl border-border bg-card px-6 h-12 font-black text-[10px] uppercase tracking-widest gap-2 shadow-sm hover:bg-muted">
               <Settings className="w-4 h-4" /> Configurações
             </Button>
           </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* INFO CARD */}
-          <div className="lg:col-span-2 bg-white p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 flex flex-col justify-center">
+          {/* INFO CARD: bg-white -> bg-card */}
+          <div className="lg:col-span-2 bg-card p-10 rounded-[2.5rem] shadow-md border border-border flex flex-col justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Nome cadastrado</label>
-                <p className="text-xl font-black text-slate-800 tracking-tight">{dbUser.name || "Não informado"}</p>
+                <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">Nome cadastrado</label>
+                <p className="text-xl font-black text-foreground tracking-tight uppercase">{dbUser.name || "Não informado"}</p>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Contato WhatsApp</label>
-                <p className="text-xl font-black text-slate-800 tracking-tight">{dbUser.phone || "Não informado"}</p>
+                <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">Contato WhatsApp</label>
+                <p className="text-xl font-black text-foreground tracking-tight">{dbUser.phone || "Não informado"}</p>
               </div>
             </div>
           </div>
 
-          {/* VISUALIZAÇÕES CARD */}
-          <div className="bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-              <Eye className="w-24 h-24 text-white" />
+          {/* VISUALIZAÇÕES CARD: Destaque Dinâmico */}
+          <div className="bg-primary p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-500">
+              <Eye className="w-24 h-24 text-primary-foreground" />
             </div>
-            <h3 className="text-6xl font-black text-white tracking-tighter">{service?.views || 0}</h3>
-            <p className="text-blue-400 text-[11px] font-black uppercase tracking-[0.2em] mt-2">Visitas no seu Card</p>
+            <h3 className="text-7xl font-black text-primary-foreground tracking-tighter leading-none">{service?.views || 0}</h3>
+            <p className="text-primary-foreground/80 text-[11px] font-black uppercase tracking-[0.2em] mt-2">Visitas no seu Card</p>
           </div>
         </div>
 
-        {/* NOTIFICAÇÕES */}
-        <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden">
-          <div className="px-10 py-8 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+        {/* NOTIFICAÇÕES: bg-white -> bg-card */}
+        <section className="bg-card rounded-[2.5rem] shadow-md border border-border overflow-hidden">
+          <div className="px-10 py-8 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-muted/20">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-50 rounded-2xl">
-                <Bell className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                <Bell className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-800 tracking-tight">Notificações</h2>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Atividade da sua conta</p>
+                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">Notificações</h2>
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Fluxo de Atividade</p>
               </div>
             </div>
             <NotificationActions email={user.email!} unreadCount={unreadCount} totalCount={totalCount} />
           </div>
           
-          <div className="p-4 sm:p-8 space-y-4">
+          <div className="p-4 sm:p-10 space-y-4 bg-card">
             {dbUser.notifications.length === 0 ? (
-              <div className="py-12 text-center">
-                <MessageSquare className="w-12 h-12 text-slate-100 mx-auto mb-3" />
-                <p className="text-slate-400 font-bold">Nenhuma notificação por enquanto.</p>
+              <div className="py-16 text-center">
+                <MessageSquare className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                <p className="text-muted-foreground font-bold italic text-sm">Nenhuma notificação por enquanto.</p>
               </div>
             ) : (
               dbUser.notifications.map((n) => (
-                <div key={n.id} className={`group p-5 rounded-3xl border transition-all duration-300 ${n.read ? 'bg-white border-slate-100 opacity-60' : 'bg-blue-50/50 border-blue-100 shadow-sm'}`}>
-                  <div className="flex justify-between items-start gap-6">
-                    <p className={`text-sm leading-relaxed ${n.read ? 'text-slate-500 font-medium' : 'text-slate-900 font-black'}`}>
+                <div 
+                  key={n.id} 
+                  className={`group p-6 rounded-3xl border transition-all duration-300 ${
+                    n.read 
+                      ? 'bg-muted/10 border-border opacity-50' 
+                      : 'bg-primary/5 border-primary/20 shadow-sm'
+                  }`}
+                >
+                  <div className="flex justify-between items-start gap-8">
+                    <p className={`text-sm leading-relaxed ${n.read ? 'text-muted-foreground font-medium' : 'text-foreground font-black'}`}>
                       {n.message}
                     </p>
-                    <span className="text-[10px] font-black text-slate-400 uppercase whitespace-nowrap pt-1">
+                    <span className="text-[10px] font-black text-muted-foreground/60 uppercase whitespace-nowrap pt-1 font-mono">
                       {new Date(n.createdAt).toLocaleDateString('pt-BR')}
                     </span>
                   </div>

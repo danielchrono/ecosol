@@ -10,12 +10,12 @@ export function Card({
 }) {
   return (
     <div className={`
-      /* Estrutura Sólida e Arredondada */
-      bg-white border border-slate-100 rounded-[2rem] p-5
+      /* Estrutura Dinâmica (Dark Mode Ready) */
+      bg-card border border-border rounded-[2rem] p-5 text-foreground
       
-      /* Sombras e Transições de Engenharia */
-      shadow-sm hover:shadow-xl hover:shadow-blue-500/5 
-      hover:border-blue-100 transition-all duration-300
+      /* Sombras de Engenharia adaptativas */
+      shadow-sm hover:shadow-xl hover:shadow-primary/5 
+      hover:border-primary/30 transition-all duration-300
       ${className}
     `}>
       {children}

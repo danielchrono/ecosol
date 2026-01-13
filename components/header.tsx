@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useTheme } from "next-themes"; // Importante: adicione o hook
+import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
 import { Button } from "./ui/button";
 import NotificationModal from "./notification-modal";
@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 
 export default function Header() {
-  const { theme, setTheme } = useTheme(); // Motor do tema
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false); // Previne erro de hidratação
   const [user, setUser] = React.useState<any>(null);
   const [role, setRole] = React.useState<string>("USER");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -27,6 +28,9 @@ export default function Header() {
   const [pendingCount, setPendingCount] = React.useState(0);
 
   const menuRef = React.useRef<HTMLDivElement>(null);
+
+  // 1. Logística de Hidratação
+  React.useEffect(() => setMounted(true), []);
 
   // Lógica de fechamento de menu preservada
   React.useEffect(() => {
@@ -97,7 +101,6 @@ export default function Header() {
 
   return (
     <>
-      {/* Alterado bg-white para bg-background e text-slate-900 para text-foreground */}
       <header className="w-full border-b bg-background sticky top-0 z-40 border-border shadow-sm h-14 transition-colors">
         <div className="mx-auto max-w-6xl h-full flex items-center justify-between px-3 sm:px-4">
           
@@ -113,15 +116,28 @@ export default function Header() {
 
           <nav className="flex items-center gap-1.5 sm:gap-4">
             {!user ? (
-              <Link href="/login">
-                <Button variant="ghost" className="font-bold text-muted-foreground h-9 text-xs sm:text-sm px-3">Entrar</Button>
-              </Link>
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* 🌓 TOGGLE THEME - Para Visitantes */}
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-2 rounded-xl border border-border bg-card hover:bg-muted transition-all text-primary"
+                >
+                  {mounted && (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />)}
+                </button>
+
+                {/* 🔑 BOTÃO ENTRAR - Com destaque (Primary) */}
+                <Link href="/login">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-9 text-[10px] sm:text-xs px-4 sm:px-6 rounded-xl transition-all shadow-md uppercase tracking-widest">
+                    Entrar
+                  </Button>
+                </Link>
+              </div>
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-3">
                 
                 {role === "ADMIN" && (
                   <Link href="/admin/dashboard" className="relative group">
-                    <Button variant="outline" className="border-primary/20 text-primary font-black h-9 px-2 sm:px-4 rounded-xl flex items-center gap-2 bg-transparent">
+                    <Button variant="outline" className="border-primary/20 text-primary font-black h-9 px-2 sm:px-4 rounded-xl flex items-center gap-2 bg-transparent hover:bg-primary/5 transition-all">
                       <LayoutDashboard className="h-4 w-4" /> 
                       <span className="text-[9px] sm:text-xs uppercase tracking-tighter sm:tracking-normal">
                         <span className="sm:hidden">Admin</span>
@@ -129,7 +145,7 @@ export default function Header() {
                       </span>
                     </Button>
                     {pendingCount > 0 && (
-                      <div className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-black h-5 w-5 rounded-full flex items-center justify-center ring-2 ring-background animate-bounce">
+                      <div className="absolute -top-1 -right-1 bg-destructive text-white text-[9px] font-black h-5 w-5 rounded-full flex items-center justify-center ring-2 ring-background animate-bounce">
                         {pendingCount}
                       </div>
                     )}
@@ -152,7 +168,7 @@ export default function Header() {
                 >
                   <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                   {hasUnread && (
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background"></span>
+                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background animate-pulse"></span>
                   )}
                 </button>
 
@@ -160,33 +176,33 @@ export default function Header() {
                 <div className="relative" ref={menuRef}>
                   <button 
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-1 p-0.5 pr-1 sm:pr-2 rounded-full border border-border hover:bg-accent transition-all shadow-sm"
+                    className="flex items-center gap-1 p-0.5 pr-1 sm:pr-2 rounded-full border border-border hover:bg-muted transition-all shadow-sm"
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-black uppercase">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-black uppercase shadow-inner">
                       {user.email?.[0]}
                     </div>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isUserMenuOpen ? 'rotate-180' : ''} hidden sm:block`} />
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-2xl shadow-2xl py-1.5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                      <div className="px-4 py-3 border-b border-border bg-muted/50">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Conta Ativa</p>
+                    <div className="absolute right-0 mt-3 w-60 bg-card border border-border rounded-[1.5rem] shadow-2xl py-2 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="px-4 py-3 border-b border-border bg-muted/30">
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Carga Ativa</p>
                         <p className="text-xs font-bold text-foreground truncate">{user.email}</p>
                       </div>
 
-                      {/* TOGGLE THEME - Injetado conforme solicitado */}
-                      <div className="px-3 py-2 border-b border-border bg-muted/20">
-                        <div className="flex items-center justify-between bg-background border border-border p-1 rounded-xl">
+                      {/* TOGGLE THEME INTERNO (Logado) */}
+                      <div className="px-3 py-2 border-b border-border">
+                        <div className="flex items-center justify-between bg-muted/50 p-1 rounded-xl">
                           <button 
                             onClick={() => setTheme("light")}
-                            className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                           >
                             <Sun size={14} />
                           </button>
                           <button 
                             onClick={() => setTheme("dark")}
-                            className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                           >
                             <Moon size={14} />
                           </button>
@@ -194,10 +210,10 @@ export default function Header() {
                       </div>
 
                       <div className="p-1.5 space-y-1">
-                        <Link href="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-foreground hover:bg-accent hover:text-primary rounded-xl transition-colors">
+                        <Link href="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
                           <UserIcon className="h-4 w-4" /> Perfil da Conta
                         </Link>
-                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-destructive hover:bg-destructive/10 rounded-xl transition-colors">
+                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 text-xs font-black uppercase tracking-widest text-destructive hover:bg-destructive/10 rounded-xl transition-all">
                           <LogOut className="h-4 w-4" /> Encerrar Sessão
                         </button>
                       </div>

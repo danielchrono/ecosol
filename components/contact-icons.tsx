@@ -5,7 +5,7 @@ import {
   MessageCircle, 
   Globe, 
   Mail, 
-  Music2 // Ícone moderno para TikTok
+  Music2 
 } from "lucide-react";
 
 interface ContactIconsProps {
@@ -19,8 +19,7 @@ interface ContactIconsProps {
 }
 
 /**
- * Componente de Ícone Unificado
- * Mantém o padrão visual de "botão suave"
+ * Componente de Ícone Unificado (Refatorado para Dark Mode)
  */
 function ContactLink({ 
   href, 
@@ -37,7 +36,12 @@ function ContactLink({
       target="_blank" 
       rel="noreferrer"
       title={title}
-      className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-slate-50 text-slate-400 border border-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all duration-200"
+      /* Logística de Cores Dinâmicas:
+         - bg-slate-50 -> bg-muted (Adapta ao fundo)
+         - text-slate-400 -> text-muted-foreground
+         - hover:bg-blue-50 -> hover:bg-primary/10 (Feedback sutil)
+      */
+      className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-muted text-muted-foreground border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-200 active:scale-90"
     >
       {children}
     </a>
@@ -45,6 +49,9 @@ function ContactLink({
 }
 
 export default function ContactIcons({ contacts }: ContactIconsProps) {
+  // Se não houver contatos, a logística para aqui para economizar processamento
+  if (!contacts) return null;
+
   return (
     <div className="flex items-center gap-1.5">
       {contacts.whatsapp && (

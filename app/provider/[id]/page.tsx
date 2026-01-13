@@ -49,19 +49,21 @@ export default async function ProviderPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-12">
+    /* Logística Visual: bg-slate-50 -> bg-background | text-slate-900 -> text-foreground */
+    <div className="min-h-screen bg-background text-foreground pb-12 transition-colors duration-300">
       <Header />
       
       <main className="mx-auto max-w-4xl px-4 py-6 md:py-8">
-        {/* 1. Navegação de Topo Compacta */}
+        
+        {/* 1. Navegação de Topo */}
         <div className="flex justify-between items-center mb-4 px-2">
-          <Link href="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors">
+          <Link href="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="h-3 w-3" /> Voltar para a busca
           </Link>
           
           {canEdit && (
             <Link href={isAdmin ? `/admin/provider/${id}/edit` : `/provider/edit/${id}`}>
-              <Button variant="outline" className="h-8 border-blue-100 text-blue-600 font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-blue-50 transition-all flex gap-2">
+              <Button variant="outline" className="h-8 border-primary/20 text-primary font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-primary/10 transition-all flex gap-2">
                 <Settings className="h-3.5 w-3.5" />
                 {isAdmin ? "Admin Edit" : "Editar Negócio"}
               </Button>
@@ -69,45 +71,48 @@ export default async function ProviderPage({
           )}
         </div>
 
-        {/* 2. Card Principal: Arredondamento 2.5rem unificado */}
-        <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
+        {/* 2. Card Principal: bg-white -> bg-card | border-slate-100 -> border-border */}
+        <div className="bg-card rounded-[2.5rem] shadow-sm border border-border p-4 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
           
-          {/* Imagem: Quadrada e compacta no desktop */}
-          <div className="w-full md:w-2/5 aspect-square rounded-[2rem] bg-slate-50 overflow-hidden border border-slate-50 shadow-inner">
+          {/* Imagem: bg-slate-50 -> bg-muted */}
+          <div className="w-full md:w-2/5 aspect-square rounded-[2rem] bg-muted overflow-hidden border border-border shadow-inner">
             {service.image ? (
               <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-slate-50">
+              <div className="w-full h-full flex items-center justify-center bg-muted">
                 <span className="text-6xl grayscale opacity-20">🏢</span>
               </div>
             )}
           </div>
 
-          {/* Conteúdo: Hierarquia Visual de Engenharia */}
+          {/* Conteúdo: Hierarquia Visual Adaptativa */}
           <div className="flex-1 flex flex-col">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-[8px] font-black text-blue-600 uppercase tracking-[0.25em] px-3 py-1 bg-blue-50 rounded-full">
+              {/* Badge Categoria: bg-blue-50 -> bg-primary/10 */}
+              <span className="text-[8px] font-black text-primary uppercase tracking-[0.25em] px-3 py-1 bg-primary/10 rounded-full">
                 {service.category}
               </span>
               {canEdit && (
-                <span className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">
+                /* Badge Visitas: text-slate-400 -> text-muted-foreground | bg-slate-50 -> bg-muted */
+                <span className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border">
                   <Eye className="h-3 w-3" /> {service.views} visitas
                 </span>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-4">
+            <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tighter uppercase leading-none mb-4">
               {service.name}
             </h1>
 
-            <p className="text-sm md:text-base text-slate-500 leading-relaxed font-medium whitespace-pre-wrap mb-8">
+            {/* Descrição: text-slate-500 -> text-muted-foreground */}
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed font-medium whitespace-pre-wrap mb-8">
               {service.description}
             </p>
 
             <div className="mt-auto space-y-6">
-              {/* Contatos com os novos ícones visuais */}
+              {/* Canais de Atendimento: text-slate-300 -> text-muted-foreground/50 */}
               <div className="space-y-3">
-                <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+                <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
                   Canais de Atendimento
                 </h3>
                 <ContactIcons 

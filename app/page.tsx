@@ -7,7 +7,6 @@ export const dynamic = "force-dynamic";
 export default async function Home({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const { category } = await searchParams;
 
-  // Busca inicial consolidada (Eficiência Logística de Dados)
   const [counts, total, initialServices] = await Promise.all([
     prisma.service.groupBy({
       by: ['category'],
@@ -35,10 +34,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-10">
+    /* LOGÍSTICA VISUAL: 
+       - bg-slate-50 -> bg-background (Branco no Light / Slate-950 no Dark)
+       - text-slate-900 -> text-foreground (Preto no Light / Branco no Dark)
+    */
+    <div className="min-h-screen bg-background text-foreground pb-10 transition-colors duration-300">
       <Header />
       
-      {/* Reduzi o padding de p-6 para px-6 py-4 para ganhar espaço vertical */}
       <main className="mx-auto max-w-6xl px-6 py-4">
         <LiveSearchContainer 
           initialServices={initialServices} 
