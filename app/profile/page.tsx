@@ -1,115 +1,164 @@
-import prisma from "@/lib/prisma";
-import Header from "@/components/header";
+"use client";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createServerClient } from '@supabase/ssr';
-import NotificationActions from "@/components/notification-actions";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import Header from "@/components/header";
+import { supabase } from "@/lib/supabase";
+import { Loader2, Save, ArrowLeft, User, Phone, FileText } from "lucide-react";
+import Swal from 'sweetalert2';
 
-export default async function ProfilePage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  );
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true
+});
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+const formatPhoneNumber = (value: string) => {
+  if (!value) return value;
+  const phoneNumber = value.replace(/[^\d]/g, "");
+  const len = phoneNumber.length;
+  if (len < 3) return phoneNumber;
+  if (len < 7) return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+  return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
+};
 
-  // 1. Tenta buscar o usuário no banco (Visão de Engenharia)
-  let dbUser = await prisma.user.findUnique({
-    where: { email: user.email! },
-    include: { notifications: { orderBy: { createdAt: 'desc' }, take: 5 } }
-  });
+export default function EditProfile() {
+  const [form, setForm] = React.useState({ name: "", phone: "", bio: "" });
+  const [userEmail, setUserEmail] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const router = useRouter();
 
-  // 2. LAZY SYNC: Cria o usuário no Prisma se ele existir apenas no Auth
-  if (!dbUser) {
-    dbUser = await prisma.user.create({
-      data: {
-        email: user.email!,
-        name: user.user_metadata?.name || user.email?.split('@')[0],
-        role: "USER"
-      },
-      include: { notifications: true }
+  React.useEffect(() => {
+    async function loadInitialData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+        try {
+          const res = await fetch(`/api/user/profile?email=${user.email}`);
+          if (res.ok) {
+            const data = await res.json();
+            setForm({
+              name: data.name || "",
+              phone: data.phone || "",
+              bio: data.bio || ""
+            });
+          }
+        } catch (err) { console.error(err); }
+      }
+      setLoading(false);
+    }
+    loadInitialData();
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+
+    Swal.fire({
+      title: 'Salvando...',
+      didOpen: () => { Swal.showLoading(); },
+      allowOutsideClick: false,
+      customClass: { popup: 'rounded-[2rem]' }
     });
+
+    const res = await fetch("/api/user/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, email: userEmail }),
+    });
+
+    if (res.ok) {
+      Swal.close();
+      Toast.fire({ icon: 'success', title: 'Perfil atualizado!' });
+      router.push("/profile");
+      router.refresh(); 
+    } else {
+      setSaving(false);
+      Swal.fire({ icon: 'error', title: 'Erro ao salvar' });
+    }
   }
 
-  // 3. Busca paralela de KPIs para performance otimizada
-  const [service, unreadCount, totalCount] = await Promise.all([
-    prisma.service.findFirst({ where: { email: user.email! } }),
-    prisma.notification.count({ where: { userId: dbUser.id, read: false } }),
-    prisma.notification.count({ where: { userId: dbUser.id } })
-  ]);
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Header />
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 pb-20">
       <Header />
-      <main className="mx-auto max-w-4xl p-6 py-12">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Meu Perfil</h1>
-            <p className="text-slate-500 text-sm">Painel de controle Ecosol.</p>
-          </div>
-          <Link href="/provider/edit">
-            <Button variant="outline" className="border-blue-200 text-blue-600 font-bold">⚙️ Editar Dados</Button>
-          </Link>
-        </div>
+      <main className="max-w-2xl mx-auto p-6 py-12">
+        <Button 
+          variant="ghost" 
+          onClick={() => router.back()} 
+          className="mb-6 hover:bg-white rounded-full gap-2 text-slate-500 font-bold"
+        >
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </Button>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="md:col-span-2 bg-white p-8 rounded-2xl border shadow-sm space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome</label>
-                <p className="font-bold text-slate-700">{dbUser.name || "---"}</p>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">WhatsApp</label>
-                <p className="font-bold text-slate-700">{dbUser.phone || "---"}</p>
-              </div>
+        <form onSubmit={handleSubmit} className="bg-white p-8 md:p-12 rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/50 space-y-8">
+          <header>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Editar Perfil</h2>
+            <p className="text-slate-500 font-medium">Suas informações na rede Ecosol.</p>
+          </header>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                <User className="w-3 h-3" /> Nome Completo
+              </label>
+              <Input 
+                value={form.name} 
+                onChange={e => setForm({...form, name: e.target.value})} 
+                className="h-14 rounded-2xl border-slate-100 bg-slate-50 focus:bg-white font-bold text-base"
+                placeholder="Como você quer ser chamado?"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                <Phone className="w-3 h-3" /> WhatsApp
+              </label>
+              <Input 
+                value={form.phone} 
+                onChange={e => setForm({...form, phone: formatPhoneNumber(e.target.value)})} 
+                className="h-14 rounded-2xl border-slate-100 bg-slate-50 font-bold text-base"
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                <FileText className="w-3 h-3" /> Bio / Descrição
+              </label>
+              <textarea 
+                className="w-full border-0 bg-slate-50 rounded-[1.5rem] p-5 text-base font-medium h-40 outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                placeholder="Conte um pouco sobre você ou seu trabalho..."
+                value={form.bio} 
+                onChange={e => setForm({...form, bio: e.target.value})}
+              />
             </div>
           </div>
 
-          <div className="bg-blue-600 text-white p-8 rounded-2xl shadow-lg text-center flex flex-col justify-center">
-            <span className="text-4xl mb-2">👁️</span>
-            <h3 className="text-4xl font-black">{service?.views || 0}</h3>
-            <p className="text-blue-100 text-[10px] font-bold uppercase tracking-wider mt-2">Visitas Totais</p>
+          <div className="pt-4 flex flex-col sm:flex-row gap-4">
+             <Button 
+               type="submit" 
+               className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-2xl h-14 font-black text-lg shadow-xl shadow-blue-200 gap-2" 
+               disabled={saving}
+             >
+               {saving ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5" />}
+               Salvar Alterações
+             </Button>
           </div>
-        </div>
-
-        <div className="mt-12 bg-white rounded-2xl border p-8 shadow-sm">
-          <div className="flex justify-between items-center mb-6 border-b pb-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-slate-800 tracking-tight">🔔 Notificações</h2>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse">
-                  {unreadCount} novas
-                </span>
-              )}
-            </div>
-            <NotificationActions email={user.email!} unreadCount={unreadCount} totalCount={totalCount} />
-          </div>
-          
-          <div className="space-y-3">
-            {dbUser.notifications.length === 0 ? (
-              <div className="py-10 text-center text-slate-400 text-sm italic font-medium">
-                Sua caixa de entrada está vazia.
-              </div>
-            ) : (
-              dbUser.notifications.map((n) => (
-                <div key={n.id} className={`p-4 rounded-xl border transition-all ${n.read ? 'bg-white opacity-60' : 'bg-blue-50 border-blue-100'}`}>
-                  <div className="flex justify-between items-start gap-4">
-                    <p className="text-sm font-bold text-slate-700 leading-snug">{n.message}</p>
-                    <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap">
-                      {new Date(n.createdAt).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        </form>
       </main>
     </div>
   );
