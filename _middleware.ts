@@ -28,28 +28,42 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 3. REFRESH: Isso é vital.getUser() renova o token se necessário
+  // 3. REFRESH: Vital para segurança. getUser() valida o token no servidor
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const isProtectedPage = pathname.startsWith('/profile') || pathname.startsWith('/admin')
+  
+  // Definimos todas as rotas que exigem login
+  const isProtectedPage = 
+    pathname.startsWith('/profile') || 
+    pathname.startsWith('/admin') || 
+    pathname.startsWith('/submit')
+
   const isLoginPage = pathname === '/login'
 
-  // 4. REDIRECIONAMENTO COM PRESERVAÇÃO DE COOKIES
+  // 4. LÓGICA DE REDIRECIONAMENTO
+  
+  // BLOQUEIO: Se não houver usuário e a página for protegida (ex: /profile)
   if (!user && isProtectedPage) {
     const url = new URL('/login', request.url)
+    // Opcional: Adiciona o parâmetro de retorno para facilitar o UX após o login
+    url.searchParams.set('next', pathname) 
     return NextResponse.redirect(url)
   }
 
+  // PREVENÇÃO: Se já houver usuário e ele tentar acessar o /login
   if (user && isLoginPage) {
-    const url = new URL('/profile', request.url)
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(new URL('/profile', request.url))
   }
 
-  // 5. Retornamos a resposta que contém os cookies atualizados
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: [
+    /*
+     * Aplica o middleware em todas as rotas exceto as estáticas e de API
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
