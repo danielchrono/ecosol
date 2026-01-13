@@ -35,15 +35,19 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
     setSelected(selected.length === items.length ? [] : items.map(i => i.id));
   };
 
-  const handleAction = async (type: "restore" | "delete") => {
+  // 🛠️ CORREÇÃO DE ENGENHARIA: targetIds permite execução imediata ignorando o delay do estado
+  const handleAction = async (type: "restore" | "delete", targetIds?: number[]) => {
+    const idsToProcess = targetIds || selected;
     const isRestore = type === "restore";
-    const count = selected.length;
+    const count = idsToProcess.length;
+
+    if (count === 0) return;
 
     const result = await Swal.fire({
       title: isRestore ? 'Restaurar Cadastros?' : 'Eliminar Permanente?',
       text: isRestore 
-        ? `Deseja retornar ${count} itens para a lista ativa?` 
-        : `Atenção: Ação irreversível para ${count} itens no banco de dados.`,
+        ? `Deseja retornar ${count} ${count > 1 ? 'itens' : 'item'} para a lista ativa?` 
+        : `Atenção: Ação irreversível para ${count} ${count > 1 ? 'itens' : 'item'} no banco de dados.`,
       icon: isRestore ? 'question' : 'warning',
       showCancelButton: true,
       confirmButtonColor: isRestore ? 'hsl(var(--primary))' : 'hsl(var(--destructive))',
@@ -63,17 +67,17 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
         title: 'Sincronizando...',
         didOpen: () => { Swal.showLoading(); },
         allowOutsideClick: false,
-        customClass: { popup: 'rounded-[2.5rem] bg-card text-foreground' }
+        customClass: { popup: 'rounded-[2.5rem] bg-card text-foreground border border-border' }
       });
 
       try {
         const res = isRestore 
-          ? await restoreServicesBatchAction(selected) 
-          : await deleteServicesBatchAction(selected);
+          ? await restoreServicesBatchAction(idsToProcess) 
+          : await deleteServicesBatchAction(idsToProcess);
         
         if (res.success) {
           await onRefresh();
-          setSelected([]);
+          setSelected([]); // Limpa a seleção após sucesso
           Toast.fire({
             icon: 'success',
             title: isRestore ? 'Restaurados!' : 'Eliminados!',
@@ -129,21 +133,21 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
               }`}>
               
               <div className="space-y-4 flex-1 flex flex-col">
-                {/* Header Auditoria: Data de Exclusão */}
                 <div className="flex justify-between items-center">
                   <div className="px-3 py-1 bg-destructive/10 rounded-full flex items-center gap-2 text-[8px] font-black text-destructive uppercase tracking-widest">
                     <AlertCircle size={10} /> Excluído em: {new Date(item.deletedAt).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
 
-                {/* Motor de Visualização Padronizado */}
                 <ServiceCard service={item} />
 
-                {/* Ações Rápidas de Rodapé */}
                 <div className="flex gap-2 mt-auto pt-4 border-t border-border">
                   <Button 
                     disabled={isProcessing}
-                    onClick={(e) => { e.stopPropagation(); setSelected([item.id]); handleAction("restore"); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      handleAction("restore", [item.id]); // Injeta o ID diretamente em um array
+                    }}
                     variant="ghost"
                     className="flex-1 h-10 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 hover:text-primary font-black gap-2 rounded-2xl"
                   >
@@ -151,7 +155,10 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
                   </Button>
                   <Button 
                     disabled={isProcessing}
-                    onClick={(e) => { e.stopPropagation(); setSelected([item.id]); handleAction("delete"); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      handleAction("delete", [item.id]); // Injeta o ID diretamente em um array
+                    }}
                     variant="ghost"
                     className="h-10 px-4 rounded-2xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   >
@@ -160,7 +167,6 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
                 </div>
               </div>
 
-              {/* Indicador de Seleção Visual */}
               {selected.includes(item.id) && (
                 <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg ring-4 ring-background animate-in zoom-in">
                   <Check className="h-4 w-4 stroke-[4px]" />
@@ -171,7 +177,7 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
         ))}
       </div>
 
-      {/* EMPTY STATE PADRONIZADO */}
+      {/* EMPTY STATE */}
       {items.length === 0 && (
         <div className="py-32 text-center bg-card rounded-[3rem] border-2 border-dashed border-border transition-all">
           <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6 opacity-30">
@@ -200,16 +206,16 @@ export default function TrashList({ items, onRefresh }: TrashListProps) {
           <div className="flex gap-4">
             <Button 
               disabled={isProcessing}
-              onClick={() => handleAction("restore")} 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-2xl flex gap-3 h-12 px-8 text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95"
+              onClick={() => handleAction("restore")} // Usa o estado global "selected"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-2xl flex gap-3 h-12 px-8 text-xs uppercase tracking-widest shadow-lg active:scale-95"
             >
               <RotateCcw className="h-4 w-4" /> Restaurar
             </Button>
             <Button 
               disabled={isProcessing}
-              onClick={() => handleAction("delete")} 
+              onClick={() => handleAction("delete")} // Usa o estado global "selected"
               variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-2xl flex gap-3 h-12 px-6 text-xs uppercase tracking-widest transition-all active:scale-95"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-2xl flex gap-3 h-12 px-6 text-xs uppercase tracking-widest active:scale-95"
             >
               <Trash2 className="h-4 w-4" /> Apagar
             </Button>

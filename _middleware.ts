@@ -2,47 +2,52 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
+  // 1. Criamos a resposta inicial
+  let supabaseResponse = NextResponse.next({
+    request,
   })
 
+  // 2. Inicializamos o cliente com logística de persistência de cookies
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return request.cookies.getAll() },
+        getAll() {
+          return request.cookies.getAll()
+        },
         setAll(cookiesToSet) {
+          // Sincroniza os cookies tanto na requisição quanto na resposta
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
+          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           )
         },
       },
     }
   )
 
-  // 1. Recupera a sessão do usuário (Carga de Autenticação)
+  // 3. REFRESH: Isso é vital.getUser() renova o token se necessário
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
   const isProtectedPage = pathname.startsWith('/profile') || pathname.startsWith('/admin')
   const isLoginPage = pathname === '/login'
 
-  // 2. LOGÍSTICA DE REDIRECIONAMENTO SEGURA
-
-  // Se NÃO houver usuário e tentar acessar Perfil ou Admin -> Manda para o Login
+  // 4. REDIRECIONAMENTO COM PRESERVAÇÃO DE COOKIES
   if (!user && isProtectedPage) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const url = new URL('/login', request.url)
+    return NextResponse.redirect(url)
   }
 
-  // Se HOUVER usuário e tentar acessar o Login -> Manda para o Perfil
   if (user && isLoginPage) {
-    return NextResponse.redirect(new URL('/profile', request.url))
+    const url = new URL('/profile', request.url)
+    return NextResponse.redirect(url)
   }
 
-  return response
+  // 5. Retornamos a resposta que contém os cookies atualizados
+  return supabaseResponse
 }
 
 export const config = {

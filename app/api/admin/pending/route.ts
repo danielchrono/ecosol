@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic"; // Garante dados sempre frescos
+
 export async function GET() {
   try {
-    // Busca serviços pendentes e não suspensos
     const pendingServices = await prisma.service.findMany({
       where: {
         approved: false,
         suspended: false,
+        deletedAt: null, // Garante que não pega o que já foi para a lixeira
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(pendingServices);
   } catch (error) {
-    console.error("Erro na API de Pendentes:", error);
-    return NextResponse.json({ error: "Erro ao buscar dados" }, { status: 500 });
+    return NextResponse.json({ error: "Erro na carga de pendentes" }, { status: 500 });
   }
 }

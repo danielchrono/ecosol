@@ -7,23 +7,27 @@ export async function GET() {
   try {
     const trashed = await prisma.service.findMany({
       where: {
-        deletedAt: { not: null }, // Filtra apenas o que está na lixeira
+        deletedAt: { not: null },
       },
-      orderBy: {
-        deletedAt: 'desc',
-      },
-      // Garantimos que todos os campos necessários sejam enviados
+      orderBy: { deletedAt: 'desc' },
+      // Selecionamos TUDO que o ServiceCard e o Dashboard precisam
       select: {
         id: true,
         name: true,
         category: true,
         image: true,
-        deletedAt: true, 
+        description: true,
+        whatsapp: true,
+        instagram: true,
+        tiktok: true,
+        email: true,
+        site: true,
+        deletedAt: true,
       }
     });
 
     return NextResponse.json(trashed);
   } catch (error) {
-    return NextResponse.json({ error: "Erro ao carregar lixeira" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao carregar limbo" }, { status: 500 });
   }
 }

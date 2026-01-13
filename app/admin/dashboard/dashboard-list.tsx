@@ -3,7 +3,7 @@ import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import ServiceCard from "@/components/service-card"; // Motor padronizado
+import ServiceCard from "@/components/service-card";
 import { approveServicesBatchAction, removeServicesBatchAction } from "@/app/provider/actions";
 import { CheckCircle2, Trash2, Check, Loader2, Inbox } from "lucide-react";
 import Swal from 'sweetalert2';
@@ -30,9 +30,13 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
     setSelectedIds(selectedIds.length === initialItems.length ? [] : initialItems.map(p => p.id));
   };
 
-  const handleBatchAction = async (type: "approve" | "remove") => {
+  // 🛠️ LOGÍSTICA CORRIGIDA: targetIds permite execução imediata ignorando o delay do estado
+  const handleBatchAction = async (type: "approve" | "remove", targetIds?: number[]) => {
+    const idsToProcess = targetIds || selectedIds;
     const isApprove = type === "approve";
-    const count = selectedIds.length;
+    const count = idsToProcess.length;
+
+    if (count === 0) return;
     
     const result = await Swal.fire({
       title: isApprove ? 'Aprovar Cadastros?' : 'Recusar Itens?',
@@ -56,23 +60,23 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
         title: 'Sincronizando...',
         didOpen: () => { Swal.showLoading(); },
         allowOutsideClick: false,
-        customClass: { popup: 'rounded-[2.5rem] bg-card text-foreground' }
+        customClass: { popup: 'rounded-[2.5rem] bg-card text-foreground border border-border' }
       });
 
       try {
         const res = isApprove 
-          ? await approveServicesBatchAction(selectedIds) 
-          : await removeServicesBatchAction(selectedIds);
+          ? await approveServicesBatchAction(idsToProcess) 
+          : await removeServicesBatchAction(idsToProcess);
         
         if (res.success) {
           await onRefresh(); 
+          setSelectedIds([]); // Limpa seleção após sucesso
           Toast.fire({
             icon: 'success',
             title: isApprove ? 'Aprovado!' : 'Removido!',
             background: 'hsl(var(--card))',
             color: 'hsl(var(--foreground))'
           });
-          setSelectedIds([]);
         } else { throw new Error(); }
       } catch (error) {
         Toast.fire({ icon: 'error', title: 'Erro na operação' });
@@ -86,9 +90,9 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
   return (
     <div className={`space-y-8 transition-all duration-500 ${isProcessing ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
       
-      {/* BARRA DE SELEÇÃO: bg-white -> bg-card */}
+      {/* BARRA DE SELEÇÃO SUPERIOR */}
       {initialItems.length > 0 && (
-        <div className="flex items-center justify-between px-8 py-5 bg-card border border-border rounded-[2rem] shadow-sm">
+        <div className="flex items-center justify-between px-8 py-5 bg-card border border-border rounded-[2rem] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-4">
             <Checkbox 
               checked={selectedIds.length === initialItems.length && initialItems.length > 0}
@@ -104,14 +108,14 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
             </div>
           </div>
           {selectedIds.length > 0 && !isProcessing && (
-            <Button variant="ghost" onClick={() => setSelectedIds([])} className="text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/10">
+            <Button variant="ghost" onClick={() => setSelectedIds([])} className="text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/10 transition-all">
               Desmarcar Tudo
             </Button>
           )}
         </div>
       )}
 
-      {/* GRID DE CARDS ADMINISTRATIVOS */}
+      {/* GRID DE CARDS */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {initialItems.map((p) => (
           <div key={p.id} onClick={() => toggleSelect(p.id)} className="group relative">
@@ -123,37 +127,35 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
               }`}
             >
               <div className="space-y-4 flex-1 flex flex-col">
-                {/* 1. Componente de Visualização (Reutilizado) */}
                 <ServiceCard service={p} />
                 
-                {/* 2. Rodapé de Decisão */}
                 <div className="flex gap-2 mt-auto pt-4 border-t border-border">
                   <Button 
                     disabled={isProcessing}
-                    onClick={(e) => { e.stopPropagation(); setSelectedIds([p.id]); handleBatchAction("approve"); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      handleBatchAction("approve", [p.id]); // Injeta ID direto no array
+                    }}
                     variant="ghost"
-                    className="flex-1 h-10 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 hover:text-primary font-black gap-2 rounded-2xl"
+                    className="flex-1 h-10 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 hover:text-primary font-black gap-2 rounded-2xl transition-all"
                   >
-                    {isProcessing && selectedIds.includes(p.id) ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="h-4 w-4" />
-                    )}
-                    Aprovar
+                    <CheckCircle2 className="h-4 w-4" /> Aprovar
                   </Button>
                   
                   <Button 
                     disabled={isProcessing}
-                    onClick={(e) => { e.stopPropagation(); setSelectedIds([p.id]); handleBatchAction("remove"); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      handleBatchAction("remove", [p.id]); // Injeta ID direto no array
+                    }}
                     variant="ghost"
-                    className="h-10 px-4 rounded-2xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="h-10 px-4 rounded-2xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              {/* Indicador de Seleção Visual */}
               {selectedIds.includes(p.id) && (
                 <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg ring-4 ring-background animate-in zoom-in">
                   <Check className="h-4 w-4 stroke-[4px]" />
@@ -173,7 +175,7 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
         </div>
       )}
 
-      {/* DOCK DE AÇÕES EM LOTE (Centralizado e Flutuante) */}
+      {/* DOCK DE AÇÕES EM LOTE */}
       {selectedIds.length > 0 && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 bg-background border-2 border-primary px-8 py-5 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.3)] animate-in fade-in slide-in-from-bottom-10 duration-500">
           <div className="flex items-center gap-4 pr-8 border-r border-border">
@@ -183,7 +185,7 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
             <div>
               <p className="text-[10px] font-black text-foreground uppercase tracking-[0.2em] leading-none mb-1">Lote</p>
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">
-                {isProcessing ? "Limpando" : "Selecionados"}
+                {isProcessing ? "Sincronizando" : "Selecionados"}
               </p>
             </div>
           </div>
@@ -191,16 +193,16 @@ export default function DashboardList({ initialItems, onRefresh }: { initialItem
           <div className="flex gap-4">
             <Button 
               disabled={isProcessing}
-              onClick={() => handleBatchAction("approve")} 
+              onClick={() => handleBatchAction("approve")} // Usa o estado global selectedIds
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-2xl flex gap-3 h-12 px-8 text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95"
             >
               <CheckCircle2 className="h-4 w-4" /> Aprovar
             </Button>
             <Button 
               disabled={isProcessing}
-              onClick={() => handleBatchAction("remove")} 
+              onClick={() => handleBatchAction("remove")} // Usa o estado global selectedIds
               variant="ghost"
-              className="text-destructive hover:bg-destructive/10 font-black rounded-2xl flex gap-3 h-12 px-6 text-xs uppercase tracking-widest transition-all active:scale-95"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-2xl flex gap-3 h-12 px-6 text-xs uppercase tracking-widest transition-all active:scale-95"
             >
               <Trash2 className="h-4 w-4" /> Recusar
             </Button>

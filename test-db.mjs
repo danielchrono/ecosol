@@ -1,23 +1,37 @@
-import pg from 'pg';
-const { Client } = pg;
+/**
+ * OPERAÇÃO LIMPEZA: Normaliza todas as categorias existentes no banco.
+ * Transforma " Teste", "TESTE" e "Teste" em "teste".
+ */
+export async function migrateCategoriesToLowerCase() {
+  const auth = await getAuthContext();
+  if (!auth.isAdmin) throw new Error("Ação restrita ao administrador");
 
-// URL corrigida para o cluster aws-1 conforme seus dados
-const connectionString = "postgresql://postgres.mzwfaxaidfajmnvommen:%24Ecos%40lTea%24@aws-1-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
-
-const client = new Client({ connectionString });
-
-async function test() {
   try {
-    console.log("🔋 Validando Supavisor no Cluster AWS-1...");
-    await client.connect();
-    const res = await client.query('SELECT NOW()');
-    console.log("✅ SUPAVISOR CONECTADO COM SUCESSO!");
-    console.log("Resposta do Banco:", res.rows[0].now);
-  } catch (err) {
-    console.error("❌ ERRO CRÍTICO:");
-    console.error(err.message);
-  } finally {
-    await client.end();
+    // 1. Busca todos os serviços que possuem categoria
+    const services = await prisma.service.findMany({
+      select: { id: true, category: true }
+    });
+
+    console.log(`📦 Iniciando normalização de ${services.length} registros...`);
+
+    // 2. Mapeia e executa as atualizações
+    const updates = services.map((s) => {
+      const normalized = s.category ? s.category.trim().toLowerCase() : "";
+      
+      return prisma.service.update({
+        where: { id: s.id },
+        data: { category: normalized }
+      });
+    });
+
+    // 3. Executa em transação para garantir integridade
+    await prisma.$transaction(updates);
+
+    console.log("✅ Logística concluída: Todas as categorias foram normalizadas!");
+    revalidatePath("/");
+    return { success: true, message: `${services.length} categorias padronizadas.` };
+  } catch (error) {
+    console.error("❌ Erro na migração:", error);
+    return { success: false, error: "Falha na normalização dos dados." };
   }
 }
-test();

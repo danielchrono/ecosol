@@ -3,15 +3,15 @@ import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { id } = await request.json();
+    const { ids } = await request.json();
 
-    const updated = await prisma.service.update({
-      where: { id: Number(id) },
+    const updated = await prisma.service.updateMany({
+      where: { id: { in: ids.map(Number) } },
       data: { approved: true },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json({ success: true, count: updated.count });
   } catch (error) {
-    return NextResponse.json({ error: "Falha na aprovação" }, { status: 500 });
+    return NextResponse.json({ error: "Falha na aprovação em lote" }, { status: 500 });
   }
 }
