@@ -99,14 +99,14 @@ export default function Header() {
       <header className="w-full border-b bg-white sticky top-0 z-40 border-slate-200 shadow-sm h-14">
         <div className="mx-auto max-w-6xl h-full flex items-center justify-between px-3 sm:px-4">
           
-          {/* LOGO: Mantida exatamente como você enviou */}
-          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
-            <div className="relative h-7 w-7 sm:h-8 sm:w-8 overflow-hidden rounded-full border border-slate-100 group-hover:scale-105 transition-transform">
+          {/* LOGO: Tamanho aumentado (h-8 mobile / h-9 desktop) */}
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
+            <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-full border border-slate-100 group-hover:scale-105 transition-transform">
               <Image src="/logo.png" alt="Logo Ecosol" fill className="object-cover" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-sm sm:text-lg tracking-tighter text-slate-900 leading-none uppercase">ECOSOL</span>
-              <span className="text-[6px] sm:text-[8px] text-blue-600 font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em]">Entre Autistas</span>
+              <span className="font-black text-base sm:text-xl tracking-tighter text-slate-900 leading-none uppercase">ECOSOL</span>
+              <span className="text-[7px] sm:text-[9px] text-blue-600 font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em]">Entre Autistas</span>
             </div>
           </Link>
 
@@ -118,7 +118,6 @@ export default function Header() {
             ) : (
               <div className="flex items-center gap-1 sm:gap-2">
                 
-                {/* BOTÃO ADMIN: Agora com etiqueta visível em todos os tamanhos */}
                 {role === "ADMIN" && (
                   <Link href="/admin/dashboard" className="relative group">
                     <Button variant="outline" className="border-blue-100 text-blue-600 font-black h-8 px-1.5 sm:px-3 rounded-lg flex items-center gap-1">
@@ -133,7 +132,6 @@ export default function Header() {
                   </Link>
                 )}
 
-                {/* BOTÃO NOVO NEGÓCIO: Etiqueta "Negócio" visível para caber no mobile */}
                 <Link href="/submit">
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white font-black h-8 px-1.5 sm:px-4 rounded-lg flex items-center gap-1">
                     <PlusCircle className="h-4 w-4 sm:h-3.5 sm:w-3.5" /> 
@@ -141,7 +139,6 @@ export default function Header() {
                   </Button>
                 </Link>
 
-                {/* NOTIFICAÇÕES */}
                 <button 
                   onClick={() => setIsModalOpen(true)}
                   className="relative p-1.5 sm:p-2 text-slate-400 hover:text-blue-600 transition-colors"
@@ -171,7 +168,6 @@ export default function Header() {
                         <p className="text-[10px] font-bold text-slate-700 truncate">{user.email}</p>
                       </div>
                       <div className="p-1 space-y-0.5">
-                        {/* Atalho Admin no Mobile dentro do menu (opcional, mantido conforme seu código anterior) */}
                         {role === "ADMIN" && (
                           <Link 
                             href="/admin/dashboard" 
