@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 @theme {
-  /* Mapeando as variáveis para que o Tailwind reconheça classes como border-border, bg-background, etc. */
+  /* Mapeando as variáveis para que o Tailwind reconheça classes */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -82,30 +82,4 @@
     transition-property: color, background-color;
     transition-duration: 300ms;
   }
-}
-
-/* ESTILOS ESPECÍFICOS PARA SWEETALERT2 - ESSENCIAL! */
-.swal2-popup {
-  background: hsl(var(--card)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-.swal2-title {
-  color: hsl(var(--foreground)) !important;
-}
-
-.swal2-html-container {
-  color: hsl(var(--muted-foreground)) !important;
-}
-
-/* Garantir que os toasts herdem o tema */
-.swal2-toast {
-  background: hsl(var(--card)) !important;
-  color: hsl(var(--foreground)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Override para as animações do SweetAlert2 */
-.animate__animated {
-  animation-duration: 0.3s !important;
 }

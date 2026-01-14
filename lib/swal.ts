@@ -1,7 +1,7 @@
 import Swal, { SweetAlertResult } from 'sweetalert2';
 
 /**
- * 1. BASES DE ESTILO
+ * 1. BASES DE ESTILO - Apenas estilos, SEM classes CSS customizadas
  */
 const BUTTON_STYLES = {
   BASE: `
@@ -11,26 +11,22 @@ const BUTTON_STYLES = {
     !flex !items-center !justify-center !cursor-pointer
   `,
   
-  // Botão primário: Azul com texto claro
   CONFIRM_PRIMARY: `
     !bg-primary !text-primary-foreground 
     hover:!brightness-110 active:!scale-95
   `,
   
-  // Botão destrutivo: Vermelho com texto branco
   CONFIRM_DESTRUCTIVE: `
     !bg-destructive !text-white 
     hover:!brightness-110 active:!scale-95
   `,
   
-  // Cancelar no modo primary: Vermelho claro com texto vermelho
   CANCEL_PRIMARY: `
     !bg-destructive/10 !text-destructive !border !border-destructive/20
     hover:!bg-destructive hover:!text-white
     active:!scale-95 !ml-3
   `,
   
-  // Cancelar no modo destructive: Cinza com texto ESCURO para contraste
   CANCEL_DESTRUCTIVE: `
     !bg-muted/30 !text-foreground/80 !border !border-border/50
     hover:!bg-muted/50 hover:!text-foreground
@@ -45,7 +41,7 @@ const btnCancelPrimary = `${BUTTON_STYLES.BASE} ${BUTTON_STYLES.CANCEL_PRIMARY}`
 const btnCancelDestructive = `${BUTTON_STYLES.BASE} ${BUTTON_STYLES.CANCEL_DESTRUCTIVE}`;
 
 /**
- * 2. ESTRUTURA DO POPUP (COM BORDA FINA E NEON)
+ * 2. ESTRUTURA DO POPUP
  */
 const POPUP_BASE = '!rounded-2xl !p-8 !bg-card !text-foreground !border-[0.5px]';
 const SHADOWS = {
@@ -64,11 +60,11 @@ const SWAL_HIDE_CLASS = {
 };
 
 /**
- * 3. CONFIGURAÇÃO BASE PARA SWEETALERT2
+ * 3. CONFIGURAÇÃO BASE - IMPORTANTE: não usar customClass aqui
  */
 const getBaseConfig = () => ({
   backdrop: 'rgba(0,0,0,0.75)',
-  buttonsStyling: false,
+  buttonsStyling: false, // SweetAlert2 não aplica seus estilos
   showConfirmButton: true,
   showCancelButton: false,
   confirmButtonText: 'Confirmar',
@@ -78,7 +74,7 @@ const getBaseConfig = () => ({
 });
 
 /**
- * 4. HELPER PARA AÇÕES DESTRUTIVAS
+ * 4. HELPER PARA AÇÕES DESTRUTIVAS - COM customClass COMPLETO
  */
 export const confirmDestructiveAction = (
   title: string, 
@@ -148,88 +144,7 @@ export const confirmAction = (
 };
 
 /**
- * 6. NOTIFICAÇÃO DE SUCESSO
- */
-export const notifySuccess = (
-  title: string, 
-  text: string, 
-  timer: number = 2200
-): Promise<SweetAlertResult> => {
-  return Swal.fire({
-    ...getBaseConfig(),
-    title,
-    text,
-    icon: 'success' as const,
-    iconColor: 'hsl(var(--primary))',
-    timer,
-    showConfirmButton: false,
-    customClass: {
-      popup: `${POPUP_BASE} !border-primary/40 ${SHADOWS.NEON_BLUE}`,
-      confirmButton: '!hidden',
-      cancelButton: '!hidden',
-      title: '!text-2xl !font-black !uppercase !tracking-tight',
-      htmlContainer: '!text-sm !text-muted-foreground !font-medium !mt-4',
-      actions: '!hidden',
-    }
-  });
-};
-
-/**
- * 7. NOTIFICAÇÃO DE ERRO
- */
-export const notifyError = (
-  title: string, 
-  text: string, 
-  timer: number = 3000
-): Promise<SweetAlertResult> => {
-  return Swal.fire({
-    ...getBaseConfig(),
-    title,
-    text,
-    icon: 'error' as const,
-    iconColor: 'hsl(var(--destructive))',
-    timer,
-    showConfirmButton: false,
-    customClass: {
-      popup: `${POPUP_BASE} !border-destructive/40 ${SHADOWS.NEON_RED}`,
-      confirmButton: '!hidden',
-      cancelButton: '!hidden',
-      title: '!text-2xl !font-black !uppercase !tracking-tight',
-      htmlContainer: '!text-sm !text-muted-foreground !font-medium !mt-4',
-      actions: '!hidden',
-    }
-  });
-};
-
-/**
- * 8. NOTIFICAÇÃO DE INFORMAÇÃO
- */
-export const notifyInfo = (
-  title: string, 
-  text: string, 
-  timer: number = 2500
-): Promise<SweetAlertResult> => {
-  return Swal.fire({
-    ...getBaseConfig(),
-    title,
-    text,
-    icon: 'info' as const,
-    iconColor: 'hsl(var(--secondary))',
-    timer,
-    showConfirmButton: false,
-    customClass: {
-      popup: `${POPUP_BASE} !border-secondary/40 ${SHADOWS.NEON_BLUE}`,
-      confirmButton: '!hidden',
-      cancelButton: '!hidden',
-      title: '!text-2xl !font-black !uppercase !tracking-tight',
-      htmlContainer: '!text-sm !text-muted-foreground !font-medium !mt-4',
-      actions: '!hidden',
-    }
-  });
-};
-
-/**
- * 9. MODAL DE LOADING
+ * 6. MODAL DE LOADING
  */
 export const showLoading = (title: string = 'Processando...'): Promise<SweetAlertResult> => {
   return Swal.fire({
@@ -240,6 +155,8 @@ export const showLoading = (title: string = 'Processando...'): Promise<SweetAler
     allowOutsideClick: false,
     backdrop: `rgba(0,0,0,0.75)`,
     showConfirmButton: false,
+    showClass: SWAL_SHOW_CLASS,
+    hideClass: SWAL_HIDE_CLASS,
     customClass: {
       popup: `${POPUP_BASE} !border-primary/40 ${SHADOWS.NEON_BLUE}`,
       title: '!text-2xl !font-black !uppercase !tracking-tight',
@@ -248,7 +165,7 @@ export const showLoading = (title: string = 'Processando...'): Promise<SweetAler
 };
 
 /**
- * 10. SISTEMA DE TOASTS
+ * 7. TOAST - USANDO A VERSÃO QUE FUNCIONAVA
  */
 export const Toast = Swal.mixin({
   toast: true,
@@ -280,7 +197,7 @@ export const Toast = Swal.mixin({
 });
 
 /**
- * 11. GESTOR DE FEEDBACK (TOASTS)
+ * 8. GESTOR DE NOTIFICAÇÕES
  */
 export const notify = {
   success: (message: string) => {
@@ -320,7 +237,58 @@ export const notify = {
 };
 
 /**
- * 12. CONFIGURAÇÃO PADRÃO (PARA USO DIRETO SE NECESSÁRIO)
+ * 9. NOTIFICAÇÕES DE MODAL (opcional)
+ */
+export const notifySuccess = (
+  title: string, 
+  text: string, 
+  timer: number = 2200
+): Promise<SweetAlertResult> => {
+  return Swal.fire({
+    ...getBaseConfig(),
+    title,
+    text,
+    icon: 'success' as const,
+    iconColor: 'hsl(var(--primary))',
+    timer,
+    showConfirmButton: false,
+    customClass: {
+      popup: `${POPUP_BASE} !border-primary/40 ${SHADOWS.NEON_BLUE}`,
+      confirmButton: '!hidden',
+      cancelButton: '!hidden',
+      title: '!text-2xl !font-black !uppercase !tracking-tight',
+      htmlContainer: '!text-sm !text-muted-foreground !font-medium !mt-4',
+      actions: '!hidden',
+    }
+  });
+};
+
+export const notifyError = (
+  title: string, 
+  text: string, 
+  timer: number = 3000
+): Promise<SweetAlertResult> => {
+  return Swal.fire({
+    ...getBaseConfig(),
+    title,
+    text,
+    icon: 'error' as const,
+    iconColor: 'hsl(var(--destructive))',
+    timer,
+    showConfirmButton: false,
+    customClass: {
+      popup: `${POPUP_BASE} !border-destructive/40 ${SHADOWS.NEON_RED}`,
+      confirmButton: '!hidden',
+      cancelButton: '!hidden',
+      title: '!text-2xl !font-black !uppercase !tracking-tight',
+      htmlContainer: '!text-sm !text-muted-foreground !font-medium !mt-4',
+      actions: '!hidden',
+    }
+  });
+};
+
+/**
+ * 10. CONFIG PADRÃO (para compatibilidade)
  */
 export const swalConfig = {
   backdrop: 'rgba(0,0,0,0.75)',
