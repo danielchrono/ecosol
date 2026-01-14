@@ -23,7 +23,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(notification);
-  } catch (err) {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro ao criar notificação" }, { status: 500 });
   }
 }

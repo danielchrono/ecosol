@@ -1,11 +1,12 @@
 import { defineConfig } from '@prisma/config';
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+// Se o arquivo for .env.local, você precisa passar o path exato
+dotenv.config({ path: '.env.local' });
 
 export default defineConfig({
+  schema: './prisma/schema.prisma',
   datasource: {
-    // Para o CLI (migrações), usamos a DIRECT_URL
-    url: process.env.DIRECT_URL as string,
+    url: process.env.DATABASE_URL,
   },
-}); 
+});

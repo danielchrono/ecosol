@@ -1,7 +1,10 @@
 "use client";
 
-import * as React from "react";
 
-export function ThemeToggle({ className = "" }: { className?: string }) {
-  return null;
+import { useTheme } from "next-themes";
+
+
+export function ThemeToggle() {
+  const { } = useTheme();
+   return null;
 }

@@ -22,6 +22,7 @@ model Service {
   createdAt   DateTime @default(now())
   description String?
   views       Int      @default(0)
+  deletedAt   DateTime?
 }
 
 model User {

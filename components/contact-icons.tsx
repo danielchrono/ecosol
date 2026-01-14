@@ -1,16 +1,15 @@
+"use client";
+
 import * as React from "react";
+import { 
+  Instagram, 
+  MessageCircle, 
+  Globe, 
+  Mail, 
+  Music2 
+} from "lucide-react";
 
-function Icon({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-slate-100 text-slate-700">
-      {children}
-    </span>
-  );
-}
-
-export default function ContactIcons({
-  contacts,
-}: {
+interface ContactIconsProps {
   contacts: {
     whatsapp?: string;
     instagram?: string;
@@ -18,33 +17,81 @@ export default function ContactIcons({
     email?: string;
     site?: string;
   };
+}
+
+/**
+ * Componente de Ícone Unificado (Refatorado para Dark Mode)
+ */
+function ContactLink({ 
+  href, 
+  children, 
+  title 
+}: { 
+  href: string; 
+  children: React.ReactNode; 
+  title: string 
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <a 
+      href={href} 
+      target="_blank" 
+      rel="noreferrer"
+      title={title}
+      /* Logística de Cores Dinâmicas:
+         - bg-slate-50 -> bg-muted (Adapta ao fundo)
+         - text-slate-400 -> text-muted-foreground
+         - hover:bg-blue-50 -> hover:bg-primary/10 (Feedback sutil)
+      */
+      className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-muted text-muted-foreground border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-200 active:scale-90"
+    >
+      {children}
+    </a>
+  );
+}
+
+export default function ContactIcons({ contacts }: ContactIconsProps) {
+  // Se não houver contatos, a logística para aqui para economizar processamento
+  if (!contacts) return null;
+
+  return (
+    <div className="flex items-center gap-1.5">
       {contacts.whatsapp && (
-        <a href={contacts.whatsapp} target="_blank" rel="noreferrer">
-          <Icon>W</Icon>
-        </a>
+        <ContactLink 
+          href={`https://wa.me/${contacts.whatsapp.replace(/\D/g, "")}`} 
+          title="WhatsApp"
+        >
+          <MessageCircle size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.instagram && (
-        <a href={contacts.instagram} target="_blank" rel="noreferrer">
-          <Icon>I</Icon>
-        </a>
+        <ContactLink 
+          href={`https://instagram.com/${contacts.instagram.replace("@", "")}`} 
+          title="Instagram"
+        >
+          <Instagram size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.tiktok && (
-        <a href={contacts.tiktok} target="_blank" rel="noreferrer">
-          <Icon>T</Icon>
-        </a>
+        <ContactLink 
+          href={`https://tiktok.com/@${contacts.tiktok.replace("@", "")}`} 
+          title="TikTok"
+        >
+          <Music2 size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.email && (
-        <a href={`mailto:${contacts.email}`}>
-          <Icon>@</Icon>
-        </a>
+        <ContactLink href={`mailto:${contacts.email}`} title="E-mail">
+          <Mail size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.site && (
-        <a href={contacts.site} target="_blank" rel="noreferrer">
-          <Icon>🌐</Icon>
-        </a>
+        <ContactLink href={contacts.site} title="Site Oficial">
+          <Globe size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
     </div>
   );

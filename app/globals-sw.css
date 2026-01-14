@@ -1,0 +1,6 @@
+/* ESTILOS MÍNIMOS PARA SWEETALERT2 */
+
+.swal2-popup {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}

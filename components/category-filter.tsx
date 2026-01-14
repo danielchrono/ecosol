@@ -1,8 +1,5 @@
 "use client";
-import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 
-// Definimos a estrutura exata que o componente espera
 interface CategoryData {
   name: string;
   count: number;
@@ -10,45 +7,47 @@ interface CategoryData {
 
 interface CategoryFilterProps {
   categories: CategoryData[];
+  activeCategory: string;
+  onSelect: (categoryName: string) => void;
 }
 
-export default function CategoryFilter({ categories }: CategoryFilterProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const active = searchParams.get("category") || "Todas";
-
-  function handleFilter(categoryName: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (categoryName === "Todas") {
-      params.delete("category");
-    } else {
-      params.set("category", categoryName);
-    }
-    params.delete("page");
-    router.push(`/?${params.toString()}`, { scroll: false });
-  }
-
+export default function CategoryFilter({ categories, activeCategory, onSelect }: CategoryFilterProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto py-2 no-scrollbar border-b mb-6">
-      {categories.map((c) => (
-        <button
-          key={c.name}
-          onClick={() => handleFilter(c.name)}
-          className={
-            "whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all flex items-center gap-2 " +
-            (active === c.name
-              ? "bg-blue-600 text-white shadow-md scale-105"
-              : "bg-white text-slate-700 border hover:bg-slate-100")
-          }
-        >
-          <span>{c.name}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-            active === c.name ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-500"
-          }`}>
-            {c.count}
-          </span>
-        </button>
-      ))}
+    /* py-1 para manter a barra compacta e responsiva */
+    <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2 py-1 transition-colors">
+      {categories.map((c) => {
+        const isActive = activeCategory === c.name;
+        
+        return (
+          <button
+            key={c.name}
+            onClick={() => onSelect(c.name)}
+            /* Logística de Classes:
+               - bg-white -> bg-card
+               - border-slate-100 -> border-border
+               - text-slate-400 -> text-muted-foreground
+            */
+            className={`
+              whitespace-nowrap rounded-lg px-3 py-1.5 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border active:scale-95
+              ${isActive
+                ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/20"
+                : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-primary"
+              }
+            `}
+          >
+            <span>{c.name}</span>
+            
+            {/* Badge do Contador: Adaptativo ao estado e ao tema */}
+            <span className={`px-1 py-0.5 rounded text-[8px] font-black transition-colors ${
+              isActive 
+                ? "bg-primary-foreground/20 text-primary-foreground" 
+                : "bg-muted text-muted-foreground group-hover:bg-primary/10"
+            }`}>
+              {c.count}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
