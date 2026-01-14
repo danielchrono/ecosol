@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
+import "./globals-sw.css"; // Importar os estilos do SweetAlert2
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

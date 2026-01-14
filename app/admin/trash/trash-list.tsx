@@ -4,15 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ServiceCard from "@/components/service-card";
-import Dock from "@/components/ui/dock"; // Componente Dock importado
+import Dock from "@/components/ui/dock";
 import { restoreServicesBatchAction, deleteServicesBatchAction } from "@/app/provider/actions";
 import { Trash2, RotateCcw, AlertCircle, Loader2, Check, Inbox } from "lucide-react";
-import Swal from 'sweetalert2';
 import { cn } from "@/lib/utils";
 
-// Importação da Logística de Estilo e Notificações
-import { swalConfig } from "@/lib/swal";
-import { notify } from "@/lib/toast";
+// Importação CORRETA da Logística de Estilo e Notificações
+import { confirmAction, showLoading, notify } from "@/lib/swal"; // <-- NOTIFY AGORA VEM DO SWAL.TS
 
 interface TrashListProps {
   items: any[];
@@ -42,42 +40,30 @@ export default function TrashList({ items, onRefresh, isAdmin = false }: TrashLi
 
     if (count === 0) return;
 
-    // 1. Confirmação Neon Simétrica
-    const result = await Swal.fire({
-      ...swalConfig,
+    // 1. Confirmação usando a nova função
+    const result = await confirmAction({
       title: isRestore ? 'Restaurar Cadastros?' : 'Eliminar Permanente?',
       text: isRestore 
         ? `Deseja retornar ${count} ${count > 1 ? 'itens' : 'item'} para a lista ativa?` 
         : `Atenção: Ação irreversível para ${count} ${count > 1 ? 'itens' : 'item'} no banco de dados.`,
       icon: isRestore ? 'question' : 'warning',
-      showCancelButton: true,
-      confirmButtonText: isRestore ? 'Sim, Restaurar' : 'Sim, Apagar Tudo',
-      // Ajuste dinâmico do botão para ações destrutivas mantendo simetria e sombra
-      customClass: {
-        ...swalConfig.customClass,
-        confirmButton: isRestore 
-          ? swalConfig.customClass.confirmButton 
-          : swalConfig.customClass.confirmButton.replace('bg-primary', 'bg-destructive').replace('shadow-primary/30', 'shadow-destructive/30')
-      }
+      theme: isRestore ? 'primary' : 'destructive',
+      confirmText: isRestore ? 'Sim, Restaurar' : 'Sim, Apagar Tudo',
+      cancelText: 'Cancelar'
     });
 
     if (result.isConfirmed) {
       setIsProcessing(true);
       
-      // 2. Modal de Sincronização com Neon
-      Swal.fire({
-        ...swalConfig,
-        title: 'Sincronizando...',
-        didOpen: () => { Swal.showLoading(); },
-        allowOutsideClick: false,
-      });
+      // 2. Modal de Sincronização usando a nova função
+      showLoading('Sincronizando...');
 
       try {
         const res = isRestore 
           ? await restoreServicesBatchAction(idsToProcess) 
           : await deleteServicesBatchAction(idsToProcess);
         
-        // 3. GESTOR AUTOMÁTICO: Fecha o Swal e abre o Toast Neon
+        // 3. GESTOR AUTOMÁTICO: Fecha o Swal e abre o Toast
         notify.auto(
           res.success, 
           isRestore ? 'Restaurado com sucesso!' : 'Eliminado permanentemente!',
@@ -86,7 +72,7 @@ export default function TrashList({ items, onRefresh, isAdmin = false }: TrashLi
         
         if (res.success) {
           await onRefresh();
-          setSelected([]); // Limpa a seleção após sucesso
+          setSelected([]);
         }
       } catch (error) {
         notify.error("Erro crítico ao processar lixeira.");
@@ -194,11 +180,10 @@ export default function TrashList({ items, onRefresh, isAdmin = false }: TrashLi
         </div>
       )}
 
-      {/* DOCK DE AÇÕES EM LOTE - COMPLEXO E COMPLETO */}
+      {/* DOCK DE AÇÕES EM LOTE */}
       {isAdmin && selected.length > 0 && (
         <Dock>
           <div className="flex items-center gap-4 pr-4 md:pr-8 border-r border-border flex-shrink-0">
-            {/* REMOVIDO ROTATE-2 CONFORME PEDIDO */}
             <div className="h-10 w-10 md:h-12 md:w-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center font-black text-sm md:text-lg shadow-lg shadow-primary/20">
               {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : selected.length}
             </div>

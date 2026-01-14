@@ -4,15 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ServiceCard from "@/components/service-card";
-import Dock from "@/components/ui/dock"; // Componente Dock importado
+import Dock from "@/components/ui/dock";
 import { approveServicesBatchAction, removeServicesBatchAction } from "@/app/provider/actions";
 import { CheckCircle2, Trash2, Check, Loader2, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Swal from 'sweetalert2';
 
-// Importação da Central de Estilo e Notificações
-import { swalConfig } from "@/lib/swal";
-import { notify } from "@/lib/toast";
+// Importação CORRETA da Central de Estilo e Notificações
+import { confirmAction, showLoading, notify } from "@/lib/swal"; // <-- NOTIFY AGORA VEM DO SWAL.TS
 
 interface DashboardListProps {
   initialItems: any[];
@@ -42,40 +40,28 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
 
     if (count === 0) return;
     
-    // 1. Confirmação Neon Padronizada
-    const result = await Swal.fire({
-      ...swalConfig,
+    // 1. Confirmação usando a nova função
+    const result = await confirmAction({
       title: isApprove ? 'Aprovar Cadastros?' : 'Recusar Itens?',
       text: `Deseja processar ${count} ${count > 1 ? 'solicitações' : 'solicitação'} agora?`,
       icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: isApprove ? 'Sim, Aprovar' : 'Sim, Recusar',
-      // Ajuste dinâmico para botão destrutivo mantendo a simetria e sombra
-      customClass: {
-        ...swalConfig.customClass,
-        confirmButton: isApprove 
-          ? swalConfig.customClass.confirmButton 
-          : swalConfig.customClass.confirmButton.replace('bg-primary', 'bg-destructive').replace('shadow-primary/30', 'shadow-destructive/30')
-      }
+      theme: isApprove ? 'primary' : 'destructive',
+      confirmText: isApprove ? 'Sim, Aprovar' : 'Sim, Recusar',
+      cancelText: 'Cancelar'
     });
 
     if (result.isConfirmed) {
       setIsProcessing(true);
       
-      // 2. Modal de Sincronização com Neon
-      Swal.fire({
-        ...swalConfig,
-        title: 'Sincronizando...',
-        didOpen: () => { Swal.showLoading(); },
-        allowOutsideClick: false,
-      });
+      // 2. Modal de Sincronização usando a nova função
+      showLoading('Sincronizando...');
 
       try {
         const res = isApprove 
           ? await approveServicesBatchAction(idsToProcess) 
           : await removeServicesBatchAction(idsToProcess);
         
-        // 3. GESTOR AUTOMÁTICO: Fecha o Swal e abre o Toast Neon
+        // 3. GESTOR AUTOMÁTICO: Fecha o Swal e abre o Toast
         notify.auto(res.success, isApprove ? 'Aprovado com sucesso!' : 'Removido com sucesso!');
         
         if (res.success) {
@@ -91,7 +77,6 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
   };
 
   return (
-    /* pb-32 adicionado para o dock não cobrir os últimos cards */
     <div className={cn("space-y-8 transition-all duration-500 pb-32", isProcessing && "opacity-60 pointer-events-none")}>
       
       {isAdmin && initialItems.length > 0 && (
@@ -181,11 +166,10 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
         </div>
       )}
 
-      {/* DOCK DE AÇÕES - COMPLEXO E COMPLETO */}
+      {/* DOCK DE AÇÕES */}
       {isAdmin && selectedIds.length > 0 && (
         <Dock>
           <div className="flex items-center gap-3 md:gap-4 pr-3 md:pr-8 border-r border-border flex-shrink-0">
-            {/* REMOVIDO ROTATE-2 CONFORME PEDIDO */}
             <div className="h-10 w-10 md:h-12 md:w-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center font-black text-sm md:text-lg shadow-lg shadow-primary/20">
               {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : selectedIds.length}
             </div>

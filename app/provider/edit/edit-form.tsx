@@ -466,7 +466,7 @@ export default function EditServiceForm({ service }: { service: Service }) {
         </div>
       </div>
 
-      {/* --- Ações Inferiores: Mantendo sua estrutura de layout --- */}
+      {/* --- Ações Inferiores --- */}
       <div className="pt-8 flex flex-col gap-4 border-t border-border">
         <div className="flex gap-4">
           <Button
