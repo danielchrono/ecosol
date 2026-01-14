@@ -16,6 +16,7 @@ export async function PATCH(
     
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro ao atualizar" }, { status: 500 });
   }
 }
@@ -34,6 +35,7 @@ export async function DELETE(
     
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro ao excluir" }, { status: 500 });
   }
 }

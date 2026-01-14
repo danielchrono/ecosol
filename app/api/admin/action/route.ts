@@ -24,6 +24,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Falha ao executar carga de ação" }, { status: 500 });
   }
 }

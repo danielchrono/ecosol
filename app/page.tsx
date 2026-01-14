@@ -5,7 +5,7 @@ import LiveSearchContainer from "@/components/live-search-container";
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
-  const { category } = await searchParams;
+  await searchParams;
 
   const [counts, total, initialServices] = await Promise.all([
     prisma.service.groupBy({
@@ -34,10 +34,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   ];
 
   return (
-    /* LOGÍSTICA VISUAL: 
-       - bg-slate-50 -> bg-background (Branco no Light / Slate-950 no Dark)
-       - text-slate-900 -> text-foreground (Preto no Light / Branco no Dark)
-    */
     <div className="min-h-screen bg-background text-foreground pb-10 transition-colors duration-300">
       <Header />
       

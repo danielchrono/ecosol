@@ -16,6 +16,7 @@ export async function GET() {
 
     return NextResponse.json(pendingServices);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro na carga de pendentes" }, { status: 500 });
   }
 }

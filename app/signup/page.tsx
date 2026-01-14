@@ -1,7 +1,7 @@
 "use client";
+
 import * as React from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
@@ -26,7 +26,6 @@ export default function SignupPage() {
   const [message, setMessage] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [mounted, setMounted] = React.useState(false);
   
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
 
   // Previne erro de hidratação no seletor de tema
@@ -72,6 +71,7 @@ export default function SignupPage() {
         setPassword("");
       }
     } catch (err) {
+      console.error(err);
       setMessage({ type: 'error', text: "Erro inesperado no processamento da carga." });
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ export default function SignupPage() {
           
           {/* Cabeçalho de Identidade */}
           <div className="text-center mb-10">
-            <div className="inline-flex p-4 bg-primary/10 rounded-[1.5rem] mb-5 text-primary">
+            <div className="inline-flex p-4 bg-primary/10 rounded-3xl mb-5 text-primary">
                <UserPlus size={32} />
             </div>
             <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
@@ -150,7 +150,7 @@ export default function SignupPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-16 rounded-[2rem] font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
+              className="w-full h-16 rounded-4xl font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
               disabled={loading}
             >
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight size={20} />}

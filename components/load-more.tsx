@@ -1,5 +1,5 @@
-// components/load-more.tsx
 "use client";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "./ui/button";
 

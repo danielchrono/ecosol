@@ -32,7 +32,7 @@ export async function POST(req: Request) {
               cookieStore.set({ name, value, ...options })
             )
           } catch (error) {
-            // Silencia erros se chamado em contexto onde cookies não podem ser definidos
+            console.error(error);
           }
         },
       },

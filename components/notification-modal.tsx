@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -105,7 +106,7 @@ export default function NotificationModal({
         )}
 
         {/* Lista de Notificações - bg-slate-50/30 -> bg-background */}
-        <div className="max-h-[450px] overflow-y-auto p-4 space-y-3 bg-background/50 no-scrollbar">
+        <div className="max-h-112.5 overflow-y-auto p-4 space-y-3 bg-background/50 no-scrollbar">
           {notifications.length === 0 ? (
             <div className="py-24 text-center">
                <div className="text-4xl grayscale opacity-20 mb-4">✉️</div>

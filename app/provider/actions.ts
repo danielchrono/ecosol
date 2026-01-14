@@ -18,6 +18,21 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ * Tipagem para o formData usado nas ações de serviço
+ */
+type ServiceForm = {
+  name?: string | null;
+  category?: string | null;
+  description?: string | null;
+  image?: string | null;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  email?: string | null;
+  site?: string | null;
+};
+
+/**
  * HELPER: Validação de Autenticação e Permissão (Engenharia de Sessão)
  * Sincronização robusta entre Session Storage e Prisma
  */
@@ -37,10 +52,7 @@ async function getAuthContext(id?: number) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch (error) {
-            // Em Server Actions, o Next.js às vezes restringe a escrita de cookies
-            // se a resposta já começou a ser enviada. O try/catch blinda a execução.
-          }
+          } catch {}
         },
       },
     }
@@ -80,7 +92,7 @@ async function getAuthContext(id?: number) {
 /**
  * ATUALIZAÇÃO: Edição de cadastro (Preservando todos os campos e normalizando categoria)
  */
-export async function updateServiceAction(id: number, formData: any) {
+export async function updateServiceAction(id: number, formData: ServiceForm) {
   const auth = await getAuthContext(id);
   if (!auth.isAdmin && !auth.isOwner) throw new Error("Ação restrita");
 
@@ -88,16 +100,16 @@ export async function updateServiceAction(id: number, formData: any) {
     const updated = await prisma.service.update({
       where: { id: Number(id) },
       data: {
-        name: formData.name,
+        name: typeof formData.name === "string" ? formData.name : undefined,
         // NORMALIZAÇÃO AQUI: Remove espaços e coloca em minúsculo para evitar duplicidade visual
-        category: formData.category ? formData.category.trim().toLowerCase() : formData.category,
-        description: formData.description,
-        image: formData.image,
-        whatsapp: formData.whatsapp,
-        instagram: formData.instagram,
-        tiktok: formData.tiktok,
-        email: formData.email,
-        site: formData.site,
+        category: typeof formData.category === "string" ? formData.category.trim().toLowerCase() : undefined,
+        description: typeof formData.description === "string" ? formData.description : undefined,
+        image: typeof formData.image === "string" ? formData.image : undefined,
+        whatsapp: typeof formData.whatsapp === "string" ? formData.whatsapp : undefined,
+        instagram: typeof formData.instagram === "string" ? formData.instagram : undefined,
+        tiktok: typeof formData.tiktok === "string" ? formData.tiktok : undefined,
+        email: typeof formData.email === "string" ? formData.email : undefined,
+        site: typeof formData.site === "string" ? formData.site : undefined,
       },
     });
     revalidatePath("/");
@@ -125,7 +137,7 @@ export async function deleteServiceAction(id: number) {
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/trash");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false };
   }
 }
@@ -212,7 +224,7 @@ export async function restoreServiceAction(id: number) {
     revalidatePath("/admin/trash");
     revalidatePath("/admin/dashboard");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false };
   }
 }
@@ -228,7 +240,7 @@ export async function permanentDeleteAction(id: number) {
     await prisma.service.delete({ where: { id: Number(id) } });
     revalidatePath("/admin/trash");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false };
   }
 }

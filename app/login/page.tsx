@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -36,7 +37,7 @@ export default function LoginPage() {
     setMessage(null);
 
     // 1. Autenticação Primária via Supabase
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setMessage({ type: 'error', text: "E-mail ou senha incorretos." });
@@ -96,7 +97,7 @@ export default function LoginPage() {
           
           {/* Cabeçalho de Identidade */}
           <div className="text-center mb-10">
-            <div className="inline-flex p-4 bg-primary/10 rounded-[1.5rem] mb-5 text-primary">
+            <div className="inline-flex p-4 bg-primary/10 rounded-3xl mb-5 text-primary">
                {isResetting ? <KeyRound size={32} /> : <UserCircle2 size={32} />}
             </div>
             <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
@@ -163,7 +164,7 @@ export default function LoginPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-16 rounded-[2rem] font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
+              className="w-full h-16 rounded-4xl font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
               disabled={loading}
             >
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight size={20} />}

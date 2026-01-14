@@ -1,4 +1,6 @@
 "use client";
+
+import Image from "next/image";
 import { Service } from "@prisma/client";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -12,10 +14,12 @@ export default function ServiceCard({ service }: { service: Service }) {
       
       {/* Imagem */}
       <div className="relative aspect-video rounded-[1.6rem] bg-muted overflow-hidden border border-border mb-2.5">
-        <img
+        <Image
           src={service.image || "/placeholder.png"}
           alt={service.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          fill
+          sizes="(max-width: 640px) 100vw, 50vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </div>
 

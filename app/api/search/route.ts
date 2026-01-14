@@ -24,7 +24,8 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(services);
-  } catch (err) {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro na busca" }, { status: 500 });
   }
 }

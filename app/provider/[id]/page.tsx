@@ -4,6 +4,7 @@ import ContactIcons from "@/components/contact-icons";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { cookies } from "next/headers";
 import { createServerClient } from '@supabase/ssr';
 import WhatsAppButton from "@/components/whatsapp-button";
@@ -75,9 +76,16 @@ export default async function ProviderPage({
         <div className="bg-card rounded-[2.5rem] shadow-sm border border-border p-4 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
           
           {/* Imagem: bg-slate-50 -> bg-muted */}
-          <div className="w-full md:w-2/5 aspect-square rounded-[2rem] bg-muted overflow-hidden border border-border shadow-inner">
+          <div className="w-full md:w-2/5 aspect-square rounded-4xl bg-muted overflow-hidden border border-border shadow-inner relative">
             {service.image ? (
-              <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+              <Image
+                src={service.image}
+                alt={service.name}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 40vw"
+                className="object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-muted">
                 <span className="text-6xl grayscale opacity-20">🏢</span>

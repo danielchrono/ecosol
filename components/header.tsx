@@ -1,11 +1,14 @@
 "use client";
+
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 import { Button } from "./ui/button";
 import NotificationModal from "./notification-modal";
+type ModalNotification = { id?: string; title?: string; message?: string; createdAt?: string | null; read: boolean; [key: string]: unknown };
 import { 
   Bell, 
   LogOut, 
@@ -20,11 +23,12 @@ import {
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false); // Previne erro de hidratação
-  const [user, setUser] = React.useState<any>(null);
+  // use Supabase User type for state
+  const [user, setUser] = React.useState<User | null>(null);
   const [role, setRole] = React.useState<string>("USER");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
-  const [notifications, setNotifications] = React.useState([]);
+  const [notifications, setNotifications] = React.useState<ModalNotification[]>([]);
   const [pendingCount, setPendingCount] = React.useState(0);
 
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -43,7 +47,7 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const loadAdminData = async () => {
+  const loadAdminData = React.useCallback(async () => {
     try {
       const res = await fetch('/api/admin/count');
       if (res.ok) {
@@ -51,9 +55,9 @@ export default function Header() {
         setPendingCount(count);
       }
     } catch (err) { console.error("Erro count:", err); }
-  };
+  }, []);
 
-  const loadUserData = async (email: string) => {
+  const loadUserData = React.useCallback(async (email: string) => {
     try {
       const [roleRes, notifyRes] = await Promise.all([
         fetch(`/api/user/role?email=${email}`),
@@ -62,11 +66,11 @@ export default function Header() {
       if (roleRes.ok) {
         const { role: userRole } = await roleRes.json();
         setRole(userRole);
-        if (userRole === "ADMIN") loadAdminData();
+        if (userRole === "ADMIN") await loadAdminData();
       }
       if (notifyRes.ok) setNotifications(await notifyRes.json());
     } catch (err) { console.error("Erro data fetch:", err); }
-  };
+  }, [loadAdminData]);
 
   React.useEffect(() => {
     const initAuth = async () => {
@@ -90,14 +94,14 @@ export default function Header() {
       }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [loadUserData]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
   };
 
-  const hasUnread = notifications.some((n: any) => !n.read);
+  const hasUnread = notifications.some((n: ModalNotification) => !n.read);
 
   return (
     <>
@@ -185,7 +189,7 @@ export default function Header() {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-3 w-60 bg-card border border-border rounded-[1.5rem] shadow-2xl py-2 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="absolute right-0 mt-3 w-60 bg-card border border-border rounded-3xl shadow-2xl py-2 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="px-4 py-3 border-b border-border bg-muted/30">
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Carga Ativa</p>
                         <p className="text-xs font-bold text-foreground truncate">{user.email}</p>
@@ -229,7 +233,12 @@ export default function Header() {
       <NotificationModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        notifications={notifications}
+        notifications={notifications.map((n) => ({
+          id: Number(n.id ?? 0),
+          message: n.message ?? "",
+          createdAt: n.createdAt ?? new Date().toISOString(),
+          read: Boolean(n.read),
+        }))}
         userEmail={user?.email || ""}
         onRefresh={() => loadUserData(user?.email || "")}
       />

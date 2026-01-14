@@ -49,7 +49,7 @@ export default async function ProfilePage() {
         {/* HEADER DO PERFIL: bg-blue-600 -> bg-primary */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 bg-primary rounded-[2rem] flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20">
+            <div className="w-20 h-20 bg-primary rounded-4xl flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20">
               <UserCircle className="w-12 h-12" />
             </div>
             <div>

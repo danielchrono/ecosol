@@ -78,6 +78,7 @@ export default function EditProfile() {
         router.refresh(); 
       }
     } catch (err) {
+      console.error("Erro ao salvar perfil:", err);
       // Notificação de erro automática
       notify.error("Falha na conexão com o servidor.");
     } finally {
@@ -164,7 +165,7 @@ export default function EditProfile() {
           <div className="pt-4">
              <Button 
                type="submit" 
-               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-[2rem] h-16 font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
+               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-4xl h-16 font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
                disabled={saving}
              >
                {saving ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5" />}

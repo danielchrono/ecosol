@@ -12,6 +12,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, count: updated.count });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Falha na aprovação em lote" }, { status: 500 });
   }
 }

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   try {
     // 1. Tenta buscar a role no banco
-    let user = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email },
       select: { role: true }
     });

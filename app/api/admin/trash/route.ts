@@ -28,6 +28,7 @@ export async function GET() {
 
     return NextResponse.json(trashed);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro ao carregar limbo" }, { status: 500 });
   }
 }
