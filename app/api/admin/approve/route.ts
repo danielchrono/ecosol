@@ -1,20 +1,18 @@
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { checkAdminAuth } from "@/lib/auth-check";
 
-export async function POST(req: Request) {
-  // Proteção de rota nível servidor
-  const isAuthorized = await checkAdminAuth();
-  if (!isAuthorized) {
-    return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401 });
+export async function POST(request: Request) {
+  try {
+    const { ids } = await request.json();
+
+    const updated = await prisma.service.updateMany({
+      where: { id: { in: ids.map(Number) } },
+      data: { approved: true },
+    });
+
+    return NextResponse.json({ success: true, count: updated.count });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Falha na aprovação em lote" }, { status: 500 });
   }
-
-  const body = await req.json();
-  const { id } = body;
-  
-  await prisma.service.update({ 
-    where: { id }, 
-    data: { approved: true } 
-  });
-  
-  return new Response(JSON.stringify({ ok: true }));
 }

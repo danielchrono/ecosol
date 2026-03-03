@@ -16,6 +16,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(user || { name: "", phone: "", bio: "" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Erro ao buscar perfil" }, { status: 500 });
   }
 }

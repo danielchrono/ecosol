@@ -1,33 +1,47 @@
 "use client";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
 
-export default function SearchBar() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [q, setQ] = React.useState(searchParams.get("q") || "");
+interface SearchBarProps {
+  onSearch: (term: string) => void;
+}
 
-  function handleSearch() {
-    const params = new URLSearchParams(searchParams);
-    if (q) params.set("q", q);
-    else params.delete("q");
-    
-    // Atualiza a URL de forma suave (SPA navigation)
-    router.push(`/?${params.toString()}`);
-    router.refresh();
-  }
+export default function SearchBar({ onSearch }: SearchBarProps) {
+  const [q, setQ] = React.useState("");
+
+  React.useEffect(() => {
+    onSearch(q);
+  }, [q, onSearch]);
 
   return (
-    <div className="flex w-full max-w-3xl items-center gap-2">
-      <Input
-        placeholder="O que você procura hoje?"
+    /**
+     * CONTÊINER PAI (Logística de Cores Adaptativas)
+     * - bg-white -> bg-background
+     * - border-slate-200 -> border-input
+     * - focus-within:ring-blue-50/50 -> focus-within:ring-primary/20
+     */
+    <div className="flex w-full max-w-2xl items-center bg-background h-11 px-4 
+                    rounded-full border border-input transition-all duration-300
+                    focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 
+                    shadow-sm group">
+      
+      {/* Lupa integrada: text-slate-400 -> text-muted-foreground */}
+      <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors stroke-[2.5px] shrink-0" />
+
+      {/* INPUT NATIVO:
+          - text-slate-700 -> text-foreground
+          - placeholder:text-slate-300 -> placeholder:text-muted-foreground
+      */}
+      <input
+        type="text"
+        className="flex-1 bg-transparent h-full ml-3 text-sm font-bold text-foreground 
+                   placeholder:text-muted-foreground/60 placeholder:font-medium
+                   outline-none border-none ring-0 focus:ring-0 focus:outline-none"
+        placeholder="O que você precisa hoje?"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
       />
-      <Button onClick={handleSearch}>Buscar</Button>
     </div>
   );
 }

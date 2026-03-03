@@ -5,15 +5,19 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header";
 import { supabase } from "@/lib/supabase";
+import { Loader2, Save, ArrowLeft, User, Phone, FileText } from "lucide-react";
+import Swal from 'sweetalert2';
+
+// Importação da Central de Estilo e do Gestor de Notificações Automático
+import { swalConfig } from "@/lib/swal";
+import { notify } from "@/lib/toast";
 
 const formatPhoneNumber = (value: string) => {
   if (!value) return value;
   const phoneNumber = value.replace(/[^\d]/g, "");
-  const phoneNumberLength = phoneNumber.length;
-  if (phoneNumberLength < 3) return phoneNumber;
-  if (phoneNumberLength < 7) {
-    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
-  }
+  const len = phoneNumber.length;
+  if (len < 3) return phoneNumber;
+  if (len < 7) return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
   return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
 };
 
@@ -27,10 +31,8 @@ export default function EditProfile() {
   React.useEffect(() => {
     async function loadInitialData() {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (user?.email) {
         setUserEmail(user.email);
-        
         try {
           const res = await fetch(`/api/user/profile?email=${user.email}`);
           if (res.ok) {
@@ -41,13 +43,10 @@ export default function EditProfile() {
               bio: data.bio || ""
             });
           }
-        } catch (err) {
-          console.error("Erro ao carregar perfil:", err);
-        }
+        } catch (err) { console.error("Erro na carga do perfil:", err); }
       }
       setLoading(false);
     }
-
     loadInitialData();
   }, []);
 
@@ -55,89 +54,122 @@ export default function EditProfile() {
     e.preventDefault();
     setSaving(true);
 
-    const res = await fetch("/api/user/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, email: userEmail }),
+    // 1. Modal de Sincronização Neon (Padronizado via lib/swal)
+    Swal.fire({
+      ...swalConfig,
+      title: 'Sincronizando...',
+      text: 'Atualizando seus dados na rede Ecosol.',
+      didOpen: () => Swal.showLoading(),
+      allowOutsideClick: false,
     });
 
-    if (res.ok) {
-      router.push("/profile");
-      router.refresh(); 
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, email: userEmail }),
+      });
+
+      // 2. GESTOR AUTOMÁTICO: Fecha o Swal e dispara o Toast Neon Simétrico
+      notify.auto(res.ok, 'Perfil atualizado com sucesso!', 'Erro ao salvar alterações');
+
+      if (res.ok) {
+        router.push("/profile");
+        router.refresh(); 
+      }
+    } catch (err) {
+      console.error("Erro ao salvar perfil:", err);
+      // Notificação de erro automática
+      notify.error("Falha na conexão com o servidor.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <Header />
-        <div className="flex items-center justify-center h-[60vh]">
-          <p className="text-slate-500 animate-pulse font-bold uppercase tracking-widest text-xs">Carregando dados...</p>
-        </div>
+  if (loading) return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="font-black text-muted-foreground uppercase tracking-widest text-[10px] animate-pulse">
+          Carregando Perfil...
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 pb-20">
       <Header />
       <main className="max-w-2xl mx-auto p-6 py-12">
-        <form onSubmit={handleSubmit} className="bg-white p-10 rounded-3xl border shadow-xl space-y-6">
-          <div className="border-b pb-4">
-            <h2 className="text-2xl font-black text-slate-900">Editar Perfil</h2>
-            <p className="text-slate-500 text-sm">Atualize suas informações para a rede Ecosol.</p>
+        <Button 
+          variant="ghost" 
+          onClick={() => router.back()} 
+          className="mb-8 hover:bg-card rounded-full gap-2 text-muted-foreground font-black uppercase text-[10px] tracking-widest"
+        >
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </Button>
+
+        <form 
+          onSubmit={handleSubmit} 
+          className="bg-card p-8 md:p-12 rounded-[2.5rem] border border-border shadow-xl space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <header className="space-y-1">
+            <h2 className="text-4xl font-black text-foreground tracking-tighter uppercase leading-none">
+              Editar Perfil
+            </h2>
+            <p className="text-muted-foreground font-medium text-sm">
+              Mantenha seus dados de contato atualizados na rede <span className="text-primary font-bold">Ecosol</span>.
+            </p>
+          </header>
+
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] ml-1">
+                <User className="w-3.5 h-3.5" /> Nome Completo
+              </label>
+              <Input 
+                value={form.name} 
+                onChange={e => setForm({...form, name: e.target.value})} 
+                className="h-14 rounded-2xl bg-muted/30 focus:bg-background border-border font-bold text-base transition-all"
+                placeholder="Como você quer ser chamado?"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] ml-1">
+                <Phone className="w-3.5 h-3.5" /> WhatsApp Comercial
+              </label>
+              <Input 
+                value={form.phone} 
+                onChange={e => setForm({...form, phone: formatPhoneNumber(e.target.value)})} 
+                className="h-14 rounded-2xl bg-muted/30 focus:bg-background border-border font-bold text-base transition-all"
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] ml-1">
+                <FileText className="w-3.5 h-3.5" /> Bio / Descrição Pessoal
+              </label>
+              <textarea 
+                className="w-full border border-border bg-muted/30 rounded-3xl p-6 text-base font-medium h-44 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-inner text-foreground placeholder:text-muted-foreground/40 resize-none"
+                placeholder="Conte um pouco sobre você..."
+                value={form.bio} 
+                onChange={e => setForm({...form, bio: e.target.value})}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
-            <Input 
-              placeholder="Digite aqui seu nome completo" 
-              value={form.name} 
-              onChange={e => setForm({...form, name: e.target.value})} 
-              className="rounded-xl border-slate-200 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">WhatsApp</label>
-            <Input 
-              placeholder="Ex: (11) 99999-9999" 
-              value={form.phone} 
-              onChange={e => {
-                const formatted = formatPhoneNumber(e.target.value);
-                setForm({...form, phone: formatted});
-              }} 
-              className="rounded-xl border-slate-200 focus:ring-blue-500"
-              maxLength={15}
-            />
-          </div> {/* <--- ESSA TAG ESTAVA FALTANDO */}
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bio / Sobre Mim</label>
-            <textarea 
-              className="w-full border border-slate-200 rounded-2xl p-4 text-sm h-40 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="Descreva seu trabalho ou sua história..."
-              value={form.bio} 
-              onChange={e => setForm({...form, bio: e.target.value})}
-            />
-          </div>
-
-          <div className="pt-4 flex gap-3">
-             <Button 
-               type="button" 
-               variant="ghost" 
-               className="flex-1 rounded-xl text-slate-400"
-               onClick={() => router.back()}
-             >
-               Cancelar
-             </Button>
+          <div className="pt-4">
              <Button 
                type="submit" 
-               className="flex-[2] bg-blue-600 hover:bg-blue-700 rounded-xl h-12 font-bold shadow-lg shadow-blue-200 transition-all" 
+               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-4xl h-16 font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
                disabled={saving}
              >
-               {saving ? "Salvando..." : "Salvar Alterações"}
+               {saving ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5" />}
+               {saving ? "Salvando Dados..." : "Confirmar Alterações"}
              </Button>
           </div>
         </form>
